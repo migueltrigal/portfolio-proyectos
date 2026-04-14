@@ -1,107 +1,29 @@
-import { useState, useMemo, useCallback, createContext, useContext } from "react";
+import { useState, useMemo, useCallback, useEffect, createContext, useContext } from "react";
 import { LOGO_SRC } from "./logo.js";
+import { loadAll, crearProyecto, editarProyecto, crearAvance, crearContrato, crearPago } from "./api.js";
 
 /* ─── Brand Tokens ─── */
 const C = {
-  navy: "#0E2841",
-  teal: "#267B8A",
-  orange: "#E97132",
-  gold: "#F5C518",
-  white: "#FFFFFF",
-  bg: "#F4F6F8",
-  cardBg: "#FFFFFF",
-  border: "#DDE3EA",
-  borderLight: "#EEF1F5",
-  textPrimary: "#0E2841",
-  textSecondary: "#4A5E74",
-  textMuted: "#8899AB",
+  navy: "#0E2841", teal: "#267B8A", orange: "#E97132", white: "#FFFFFF",
+  bg: "#F4F6F8", cardBg: "#FFFFFF", border: "#DDE3EA", borderLight: "#EEF1F5",
+  textPrimary: "#0E2841", textSecondary: "#4A5E74", textMuted: "#8899AB",
 };
-
 const font = "'Aptos', 'Segoe UI', -apple-system, sans-serif";
 
-/* ─── Auth Context ─── */
 const AuthCtx = createContext({ isEditor: false });
 const EDITOR_KEY = "innova2026";
 function useAuth() { return useContext(AuthCtx); }
 
 const PHASES = ["Ideación","Iniciación","Prototipado","Piloto","Implementación","Entrega","Seguimiento"];
 const PHASE_INDEX = Object.fromEntries(PHASES.map((p, i) => [p, i]));
-const STATUSES = ["En curso","En riesgo","Pausado","Completado"];
+const STATUSES = ["En curso","En riesgo","Pausado","Completado","Cancelado"];
 const STATUS_CONFIG = {
-  "En curso":   { color: "#16a34a", bg: "#f0fdf4", border: "#bbf7d0", icon: "●" },
-  "En riesgo":  { color: C.orange, bg: "#FFF5EE", border: "#FDDCBE", icon: "▲" },
-  "Pausado":    { color: "#64748b", bg: "#f1f5f9", border: "#cbd5e1", icon: "❚❚" },
-  "Completado": { color: C.teal, bg: "#EEF7F8", border: "#B8DDE2", icon: "✓" },
+  "En curso":    { color: "#16a34a", bg: "#f0fdf4", border: "#bbf7d0", icon: "●" },
+  "En riesgo":   { color: C.orange, bg: "#FFF5EE", border: "#FDDCBE", icon: "▲" },
+  "Pausado":     { color: "#64748b", bg: "#f1f5f9", border: "#cbd5e1", icon: "❚❚" },
+  "Completado":  { color: C.teal, bg: "#EEF7F8", border: "#B8DDE2", icon: "✓" },
+  "Cancelado":   { color: "#dc2626", bg: "#fef2f2", border: "#fecaca", icon: "✕" },
 };
-
-const INIT = [
-  {
-    id: 1, name: "Reto TSA — Seguridad en Alturas",
-    description: "Desafío de innovación abierta para mejorar la seguridad en trabajo en alturas en operaciones de invernadero.",
-    responsible: "Miguel Ángel", startDate: "2025-11-15", estimatedEnd: "2026-06-30",
-    budget: 45000000, status: "En curso", phase: "Prototipado",
-    advances: [
-      { id: 1, date: "2026-04-10", title: "Cierre de convocatoria — 12 propuestas recibidas", description: "Se cerró la fase de recepción con 12 equipos de 4 universidades y 3 startups. Se conformó el comité evaluador.", nextStep: "Evaluar propuestas con rúbrica y seleccionar 3 finalistas para prototipado (abril 18).", registeredBy: "Miguel Ángel" },
-      { id: 2, date: "2026-03-15", title: "Lanzamiento público del reto", description: "Brief publicado en LinkedIn, 6 universidades contactadas, 2 webinars con 85 asistentes.", nextStep: "Monitorear inscripciones hasta cierre.", registeredBy: "Miguel Ángel" },
-      { id: 3, date: "2026-02-01", title: "Brief finalizado y aprobado", description: "Documento con criterios, premios, cronograma. Aprobado por Gerencia y HSEQ.", nextStep: "Diseñar piezas de comunicación.", registeredBy: "Miguel Ángel" },
-    ],
-    contracts: [
-      { id: 101, provider: "Estudio Creativo SAS", concept: "Diseño piezas gráficas y pauta digital", value: 3700000, payments: [{ id: 1001, date: "2026-03-10", amount: 1200000, note: "Anticipo diseño" },{ id: 1002, date: "2026-03-14", amount: 2500000, note: "Pauta LinkedIn y Facebook" }]},
-      { id: 102, provider: "Zoom", concept: "Plataforma webinar (1 mes)", value: 180000, payments: [{ id: 1003, date: "2026-03-15", amount: 180000, note: "Pago único" }]},
-      { id: 103, provider: "Catering Express", concept: "Refrigerios comité evaluador", value: 200000, payments: [{ id: 1004, date: "2026-04-05", amount: 95000, note: "Primera sesión" }]},
-    ],
-  },
-  {
-    id: 2, name: "Optimización Esqueje Crisantemo",
-    description: "Eliminar errores en producción de esquejes y reducir tiempos de empaque. Meta: cero-defectos y -20% packing.",
-    responsible: "Laura Gómez", startDate: "2026-01-10", estimatedEnd: "2026-08-30",
-    budget: 28000000, status: "En curso", phase: "Piloto",
-    advances: [
-      { id: 1, date: "2026-04-08", title: "Piloto nuevo layout mesa #3", description: "Separadores por variedad y verificación visual. -12% tiempo, 0 errores en 3 días.", nextStep: "Correr piloto 2 semanas para validar consistencia.", registeredBy: "Laura Gómez" },
-      { id: 2, date: "2026-03-01", title: "Diagnóstico de errores completado", description: "450 registros: 68% confusión variedades, 22% conteo incorrecto.", nextStep: "Diseñar 3 prototipos anti-error.", registeredBy: "Laura Gómez" },
-    ],
-    contracts: [{ id: 201, provider: "Ferretería Industrial", concept: "Materiales prototipo y señalización", value: 1000000, payments: [{ id: 2001, date: "2026-02-15", amount: 340000, note: "Separadores" },{ id: 2002, date: "2026-03-20", amount: 520000, note: "Señalización visual" }]}],
-  },
-  {
-    id: 3, name: "Automatización Riego Invernadero B4",
-    description: "Sistema de riego automatizado con sensores IoT en invernadero B4 como piloto.",
-    responsible: "Andrés Mejía", startDate: "2025-09-01", estimatedEnd: "2026-03-30",
-    budget: 62000000, status: "En riesgo", phase: "Implementación",
-    advances: [
-      { id: 1, date: "2026-03-28", title: "Retraso en controladores", description: "Proveedor con 6 semanas de retraso. Evaluando alternativas nacionales.", nextStep: "Reunión Electrosistemas abril 2.", registeredBy: "Andrés Mejía" },
-      { id: 2, date: "2026-03-10", title: "Sensores instalados 100%", description: "48 sensores en 12 camas, calibrados y transmitiendo.", nextStep: "Instalar controladores.", registeredBy: "Andrés Mejía" },
-    ],
-    contracts: [
-      { id: 301, provider: "AgroSensors Ltda", concept: "48 sensores + gateway LoRaWAN", value: 14000000, payments: [{ id: 3001, date: "2025-10-15", amount: 8400000, note: "Sensores" },{ id: 3002, date: "2025-11-20", amount: 4200000, note: "Gateway + 4G" }]},
-      { id: 302, provider: "ElectroInstalaciones", concept: "Cableado e instalación", value: 10000000, payments: [{ id: 3003, date: "2026-01-10", amount: 6800000, note: "Cableado" },{ id: 3004, date: "2026-02-28", amount: 3200000, note: "Mano de obra" }]},
-      { id: 303, provider: "ControlTech Import", concept: "Controladores de válvulas", value: 24000000, payments: [{ id: 3005, date: "2026-03-05", amount: 12000000, note: "Anticipo 50%" }]},
-    ],
-  },
-  {
-    id: 4, name: "App Registro Fitosanitario",
-    description: "App móvil para reemplazar registros fitosanitarios en papel.",
-    responsible: "Miguel Ángel", startDate: "2026-02-15", estimatedEnd: "",
-    budget: null, status: "En curso", phase: "Iniciación",
-    advances: [{ id: 1, date: "2026-04-01", title: "Wireframes aprobados", description: "Presentados a 4 jefes de finca. Feedback incorporado.", nextStep: "Iniciar desarrollo MVP con modo offline.", registeredBy: "Miguel Ángel" }],
-    contracts: [{ id: 401, provider: "Figma Inc.", concept: "Licencia Figma (mensual)", value: 225000, payments: [{ id: 4001, date: "2026-03-01", amount: 75000, note: "Marzo" },{ id: 4002, date: "2026-04-01", amount: 75000, note: "Abril" }]}],
-  },
-  {
-    id: 5, name: "Rediseño Cuarto Frío Finca Principal",
-    description: "Rediseño layout y refrigeración para +30% capacidad y mejor uniformidad térmica.",
-    responsible: "Carlos Rodríguez", startDate: "2025-08-01", estimatedEnd: "2026-02-28",
-    budget: 95000000, status: "Completado", phase: "Seguimiento",
-    advances: [
-      { id: 1, date: "2026-02-25", title: "Entregado — capacidad +34%", description: "+34% capacidad, variación <0.5°C.", nextStep: "Monitoreo 3 meses.", registeredBy: "Carlos Rodríguez" },
-      { id: 2, date: "2026-01-30", title: "Refrigeración instalada", description: "3 evaporadores + control digital. Arranque OK.", nextStep: "Pruebas de estrés 1 semana.", registeredBy: "Carlos Rodríguez" },
-    ],
-    contracts: [
-      { id: 501, provider: "Ing. Térmicos", concept: "Diseño ingeniería", value: 8500000, payments: [{ id: 5001, date: "2025-09-10", amount: 8500000, note: "Pago único" }]},
-      { id: 502, provider: "ConstruFrío SAS", concept: "Obra civil", value: 22000000, payments: [{ id: 5002, date: "2025-10-20", amount: 22000000, note: "Pago único" }]},
-      { id: 503, provider: "RefriEquipos", concept: "Evaporadores + control + instalación", value: 55000000, payments: [{ id: 5003, date: "2025-12-15", amount: 35000000, note: "Evaporadores" },{ id: 5004, date: "2026-01-10", amount: 6800000, note: "Control digital" },{ id: 5005, date: "2026-01-25", amount: 12500000, note: "Instalación" }]},
-      { id: 504, provider: "Metálicas JR", concept: "Estanterías", value: 8200000, payments: [{ id: 5006, date: "2026-02-15", amount: 8200000, note: "Pago único" }]},
-    ],
-  },
-];
 
 const fmt = n => "$" + n.toLocaleString("es-CO");
 const fmtS = n => n == null ? "—" : "$" + (n >= 1e6 ? (n/1e6).toFixed(1)+"M" : (n/1e3).toFixed(0)+"K");
@@ -113,6 +35,17 @@ const inp = { width:"100%",padding:"10px 12px",borderRadius:6,fontSize:13,border
 const lbl = { fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",color:C.textMuted,display:"block",marginBottom:5 };
 const btnP = { padding:"10px 24px",borderRadius:6,border:"none",cursor:"pointer",background:C.navy,color:C.white,fontWeight:700,fontSize:13,fontFamily:font };
 const btnS = { padding:"10px 24px",borderRadius:6,border:`1px solid ${C.border}`,background:C.white,color:C.textSecondary,fontWeight:700,fontSize:13,fontFamily:font,cursor:"pointer" };
+
+/* ─── Loading Spinner ─── */
+function Spinner({ text = "Cargando..." }) {
+  return (
+    <div style={{ display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:60 }}>
+      <div style={{ width:32,height:32,border:`3px solid ${C.borderLight}`,borderTop:`3px solid ${C.teal}`,borderRadius:"50%",animation:"spin 0.8s linear infinite" }}/>
+      <p style={{ marginTop:12,fontSize:13,color:C.textMuted,fontWeight:600 }}>{text}</p>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
+  );
+}
 
 /* ─── Auth Bar ─── */
 function AuthBar({ isEditor, onLogin, onLogout }) {
@@ -138,67 +71,34 @@ function AuthBar({ isEditor, onLogin, onLogout }) {
 /* ─── Shared ─── */
 function PhaseStepper({currentPhase,compact=false}){
   const idx=PHASE_INDEX[currentPhase]??0;
-  if(compact) return(
-    <div style={{display:"flex",alignItems:"center",gap:3}}>
-      {PHASES.map((p,i)=>(
-        <div key={p} title={p} style={{width:i===idx?"auto":8,height:8,borderRadius:i===idx?4:"50%",padding:i===idx?"0 8px":0,background:i<=idx?C.teal:"#D1D9E6",display:"flex",alignItems:"center",justifyContent:"center"}}>
-          {i===idx&&<span style={{fontSize:9,fontWeight:700,color:C.white,whiteSpace:"nowrap"}}>{p}</span>}
-        </div>
-      ))}
-    </div>
-  );
-  return(
-    <div style={{display:"flex",alignItems:"center",width:"100%"}}>
-      {PHASES.map((p,i)=>{const done=i<idx,active=i===idx;return(
-        <div key={p} style={{display:"flex",alignItems:"center",flex:i<PHASES.length-1?1:"none"}}>
-          <div style={{display:"flex",flexDirection:"column",alignItems:"center",zIndex:1}}>
-            <div style={{width:active?28:16,height:active?28:16,borderRadius:"50%",background:done||active?C.teal:"#E8ECF2",border:active?`3px solid ${C.teal}44`:"none",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:active?`0 0 0 4px ${C.teal}15`:"none"}}>
-              {done&&<span style={{color:C.white,fontSize:9,fontWeight:800}}>✓</span>}
-              {active&&<span style={{color:C.white,fontSize:8,fontWeight:800}}>{i+1}</span>}
-              {!done&&!active&&<span style={{color:"#94a3b8",fontSize:7,fontWeight:700}}>{i+1}</span>}
-            </div>
-            <span style={{fontSize:8,fontWeight:active?800:600,color:done||active?C.teal:C.textMuted,marginTop:4,whiteSpace:"nowrap"}}>{p}</span>
-          </div>
-          {i<PHASES.length-1&&<div style={{flex:1,height:2,minWidth:6,background:done?C.teal:"#E2E8F0",margin:"0 2px",marginBottom:16}}/>}
-        </div>
-      );})}
-    </div>
-  );
+  if(compact) return(<div style={{display:"flex",alignItems:"center",gap:3}}>{PHASES.map((p,i)=>(<div key={p} title={p} style={{width:i===idx?"auto":8,height:8,borderRadius:i===idx?4:"50%",padding:i===idx?"0 8px":0,background:i<=idx?C.teal:"#D1D9E6",display:"flex",alignItems:"center",justifyContent:"center"}}>{i===idx&&<span style={{fontSize:9,fontWeight:700,color:C.white,whiteSpace:"nowrap"}}>{p}</span>}</div>))}</div>);
+  return(<div style={{display:"flex",alignItems:"center",width:"100%"}}>{PHASES.map((p,i)=>{const done=i<idx,active=i===idx;return(<div key={p} style={{display:"flex",alignItems:"center",flex:i<PHASES.length-1?1:"none"}}><div style={{display:"flex",flexDirection:"column",alignItems:"center",zIndex:1}}><div style={{width:active?28:16,height:active?28:16,borderRadius:"50%",background:done||active?C.teal:"#E8ECF2",border:active?`3px solid ${C.teal}44`:"none",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:active?`0 0 0 4px ${C.teal}15`:"none"}}>{done&&<span style={{color:C.white,fontSize:9,fontWeight:800}}>✓</span>}{active&&<span style={{color:C.white,fontSize:8,fontWeight:800}}>{i+1}</span>}{!done&&!active&&<span style={{color:"#94a3b8",fontSize:7,fontWeight:700}}>{i+1}</span>}</div><span style={{fontSize:8,fontWeight:active?800:600,color:done||active?C.teal:C.textMuted,marginTop:4,whiteSpace:"nowrap"}}>{p}</span></div>{i<PHASES.length-1&&<div style={{flex:1,height:2,minWidth:6,background:done?C.teal:"#E2E8F0",margin:"0 2px",marginBottom:16}}/>}</div>);})}</div>);
 }
 
-function Section({title,accent,action,children,style:sx}){return(
-  <div style={{background:C.cardBg,borderRadius:10,border:`1px solid ${C.border}`,overflow:"hidden",...sx}}>
-    {title&&<div style={{padding:"13px 24px",borderBottom:`1px solid ${C.border}`,background:"#F7F9FB",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-      <div style={{display:"flex",alignItems:"center",gap:8}}>
-        {accent&&<div style={{width:3,height:16,borderRadius:2,background:accent}}/>}
-        <h3 style={{margin:0,fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.1em",color:C.textSecondary,fontFamily:font}}>{title}</h3>
-      </div>{action}
-    </div>}{children}
-  </div>
-);}
+function Section({title,accent,action,children,style:sx}){return(<div style={{background:C.cardBg,borderRadius:10,border:`1px solid ${C.border}`,overflow:"hidden",...sx}}>{title&&<div style={{padding:"13px 24px",borderBottom:`1px solid ${C.border}`,background:"#F7F9FB",display:"flex",alignItems:"center",justifyContent:"space-between"}}><div style={{display:"flex",alignItems:"center",gap:8}}>{accent&&<div style={{width:3,height:16,borderRadius:2,background:accent}}/>}<h3 style={{margin:0,fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.1em",color:C.textSecondary,fontFamily:font}}>{title}</h3></div>{action}</div>}{children}</div>);}
 
-function Modal({title,onClose,children}){return(
-  <div style={{position:"fixed",inset:0,zIndex:1000,background:"rgba(14,40,65,0.5)",backdropFilter:"blur(4px)",display:"flex",alignItems:"center",justifyContent:"center",padding:16}} onClick={onClose}>
-    <div onClick={e=>e.stopPropagation()} style={{background:C.white,borderRadius:12,border:`1px solid ${C.border}`,boxShadow:"0 24px 64px rgba(14,40,65,0.20)",width:"100%",maxWidth:560,maxHeight:"90vh",overflow:"auto"}}>
-      <div style={{padding:"18px 24px",borderBottom:`1px solid ${C.border}`,display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,background:C.white,zIndex:1,borderRadius:"12px 12px 0 0"}}>
-        <h2 style={{margin:0,fontSize:16,fontWeight:700,color:C.navy,fontFamily:font}}>{title}</h2>
-        <button onClick={onClose} style={{background:"none",border:"none",fontSize:20,color:C.textMuted,cursor:"pointer",padding:4,lineHeight:1}}>✕</button>
-      </div>
-      <div style={{padding:"20px 24px"}}>{children}</div>
-    </div>
-  </div>
-);}
+function Modal({title,onClose,children}){return(<div style={{position:"fixed",inset:0,zIndex:1000,background:"rgba(14,40,65,0.5)",backdropFilter:"blur(4px)",display:"flex",alignItems:"center",justifyContent:"center",padding:16}} onClick={onClose}><div onClick={e=>e.stopPropagation()} style={{background:C.white,borderRadius:12,border:`1px solid ${C.border}`,boxShadow:"0 24px 64px rgba(14,40,65,0.20)",width:"100%",maxWidth:560,maxHeight:"90vh",overflow:"auto"}}><div style={{padding:"18px 24px",borderBottom:`1px solid ${C.border}`,display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,background:C.white,zIndex:1,borderRadius:"12px 12px 0 0"}}><h2 style={{margin:0,fontSize:16,fontWeight:700,color:C.navy,fontFamily:font}}>{title}</h2><button onClick={onClose} style={{background:"none",border:"none",fontSize:20,color:C.textMuted,cursor:"pointer",padding:4,lineHeight:1}}>✕</button></div><div style={{padding:"20px 24px"}}>{children}</div></div></div>);}
 
-/* ─── Forms (compact) ─── */
-function CreateProjectForm({onSave,onCancel}){const[f,sF]=useState({name:"",description:"",responsible:"",startDate:"",estimatedEnd:"",budget:"",status:"En curso",phase:"Ideación"});const s=(k,v)=>sF(p=>({...p,[k]:v}));const ok=f.name&&f.responsible&&f.startDate;return(<Modal title="Nuevo proyecto" onClose={onCancel}><div style={{display:"flex",flexDirection:"column",gap:16}}><div><label style={lbl}>Nombre *</label><input style={inp} value={f.name} onChange={e=>s("name",e.target.value)} placeholder="Ej: Automatización de riego"/></div><div><label style={lbl}>Descripción</label><textarea style={{...inp,minHeight:80,resize:"vertical"}} value={f.description} onChange={e=>s("description",e.target.value)}/></div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}><div><label style={lbl}>Responsable *</label><input style={inp} value={f.responsible} onChange={e=>s("responsible",e.target.value)}/></div><div><label style={lbl}>Presupuesto (COP)</label><input style={inp} type="number" value={f.budget} onChange={e=>s("budget",e.target.value)} placeholder="Opcional"/></div></div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}><div><label style={lbl}>Fecha inicio *</label><input style={inp} type="date" value={f.startDate} onChange={e=>s("startDate",e.target.value)}/></div><div><label style={lbl}>Fecha est. terminación</label><input style={inp} type="date" value={f.estimatedEnd} onChange={e=>s("estimatedEnd",e.target.value)}/></div></div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}><div><label style={lbl}>Estado</label><select style={inp} value={f.status} onChange={e=>s("status",e.target.value)}>{STATUSES.map(x=><option key={x}>{x}</option>)}</select></div><div><label style={lbl}>Fase</label><select style={inp} value={f.phase} onChange={e=>s("phase",e.target.value)}>{PHASES.map(x=><option key={x}>{x}</option>)}</select></div></div><div style={{display:"flex",gap:10,justifyContent:"flex-end",marginTop:8}}><button style={btnS} onClick={onCancel}>Cancelar</button><button style={{...btnP,opacity:ok?1:0.5,pointerEvents:ok?"auto":"none"}} onClick={()=>onSave({id:Date.now(),name:f.name,description:f.description,responsible:f.responsible,startDate:f.startDate,estimatedEnd:f.estimatedEnd||"",budget:f.budget?Number(f.budget):null,status:f.status,phase:f.phase,advances:[],contracts:[]})}>Crear</button></div></div></Modal>);}
+/* ─── Forms ─── */
+function CreateProjectForm({onSave,onCancel}){const[f,sF]=useState({name:"",description:"",responsible:"",startDate:"",estimatedEnd:"",budget:"",status:"En curso",phase:"Ideación"});const[saving,setSaving]=useState(false);const s=(k,v)=>sF(p=>({...p,[k]:v}));const ok=f.name&&f.responsible&&f.startDate&&!saving;
+  const handleSave=async()=>{setSaving(true);try{await onSave({...f,budget:f.budget?Number(f.budget):null});}catch(e){alert("Error al crear: "+e.message);setSaving(false);}};
+  return(<Modal title="Nuevo proyecto" onClose={onCancel}><div style={{display:"flex",flexDirection:"column",gap:16}}><div><label style={lbl}>Nombre *</label><input style={inp} value={f.name} onChange={e=>s("name",e.target.value)} placeholder="Ej: Automatización de riego"/></div><div><label style={lbl}>Descripción</label><textarea style={{...inp,minHeight:80,resize:"vertical"}} value={f.description} onChange={e=>s("description",e.target.value)}/></div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}><div><label style={lbl}>Responsable *</label><input style={inp} value={f.responsible} onChange={e=>s("responsible",e.target.value)}/></div><div><label style={lbl}>Presupuesto (COP)</label><input style={inp} type="number" value={f.budget} onChange={e=>s("budget",e.target.value)} placeholder="Opcional"/></div></div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}><div><label style={lbl}>Fecha inicio *</label><input style={inp} type="date" value={f.startDate} onChange={e=>s("startDate",e.target.value)}/></div><div><label style={lbl}>Fecha est. terminación</label><input style={inp} type="date" value={f.estimatedEnd} onChange={e=>s("estimatedEnd",e.target.value)}/></div></div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}><div><label style={lbl}>Estado</label><select style={inp} value={f.status} onChange={e=>s("status",e.target.value)}>{STATUSES.map(x=><option key={x}>{x}</option>)}</select></div><div><label style={lbl}>Fase</label><select style={inp} value={f.phase} onChange={e=>s("phase",e.target.value)}>{PHASES.map(x=><option key={x}>{x}</option>)}</select></div></div><div style={{display:"flex",gap:10,justifyContent:"flex-end",marginTop:8}}><button style={btnS} onClick={onCancel}>Cancelar</button><button style={{...btnP,opacity:ok?1:0.5,pointerEvents:ok?"auto":"none"}} onClick={handleSave}>{saving?"Guardando...":"Crear"}</button></div></div></Modal>);}
 
-function EditProjectForm({project:p,onSave,onCancel}){const[f,sF]=useState({name:p.name,description:p.description,responsible:p.responsible,estimatedEnd:p.estimatedEnd,budget:p.budget!=null?String(p.budget):"",status:p.status,phase:p.phase});const s=(k,v)=>sF(x=>({...x,[k]:v}));return(<Modal title="Editar proyecto" onClose={onCancel}><div style={{display:"flex",flexDirection:"column",gap:16}}><div><label style={lbl}>Nombre</label><input style={inp} value={f.name} onChange={e=>s("name",e.target.value)}/></div><div><label style={lbl}>Descripción</label><textarea style={{...inp,minHeight:80,resize:"vertical"}} value={f.description} onChange={e=>s("description",e.target.value)}/></div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}><div><label style={lbl}>Responsable</label><input style={inp} value={f.responsible} onChange={e=>s("responsible",e.target.value)}/></div><div><label style={lbl}>Presupuesto (COP)</label><input style={inp} type="number" value={f.budget} onChange={e=>s("budget",e.target.value)} placeholder="Opcional"/></div></div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12}}><div><label style={lbl}>Fecha est. fin</label><input style={inp} type="date" value={f.estimatedEnd} onChange={e=>s("estimatedEnd",e.target.value)}/></div><div><label style={lbl}>Estado</label><select style={inp} value={f.status} onChange={e=>s("status",e.target.value)}>{STATUSES.map(x=><option key={x}>{x}</option>)}</select></div><div><label style={lbl}>Fase</label><select style={inp} value={f.phase} onChange={e=>s("phase",e.target.value)}>{PHASES.map(x=><option key={x}>{x}</option>)}</select></div></div><div style={{display:"flex",gap:10,justifyContent:"flex-end",marginTop:8}}><button style={btnS} onClick={onCancel}>Cancelar</button><button style={btnP} onClick={()=>onSave({...p,...f,budget:f.budget?Number(f.budget):null})}>Guardar</button></div></div></Modal>);}
+function EditProjectForm({project:p,onSave,onCancel}){const[f,sF]=useState({name:p.name,description:p.description,responsible:p.responsible,estimatedEnd:p.estimatedEnd,budget:p.budget!=null?String(p.budget):"",status:p.status,phase:p.phase});const[saving,setSaving]=useState(false);const s=(k,v)=>sF(x=>({...x,[k]:v}));
+  const handleSave=async()=>{setSaving(true);try{await onSave({...p,...f,budget:f.budget?Number(f.budget):null});}catch(e){alert("Error: "+e.message);setSaving(false);}};
+  return(<Modal title="Editar proyecto" onClose={onCancel}><div style={{display:"flex",flexDirection:"column",gap:16}}><div><label style={lbl}>Nombre</label><input style={inp} value={f.name} onChange={e=>s("name",e.target.value)}/></div><div><label style={lbl}>Descripción</label><textarea style={{...inp,minHeight:80,resize:"vertical"}} value={f.description} onChange={e=>s("description",e.target.value)}/></div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}><div><label style={lbl}>Responsable</label><input style={inp} value={f.responsible} onChange={e=>s("responsible",e.target.value)}/></div><div><label style={lbl}>Presupuesto (COP)</label><input style={inp} type="number" value={f.budget} onChange={e=>s("budget",e.target.value)} placeholder="Opcional"/></div></div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12}}><div><label style={lbl}>Fecha est. fin</label><input style={inp} type="date" value={f.estimatedEnd} onChange={e=>s("estimatedEnd",e.target.value)}/></div><div><label style={lbl}>Estado</label><select style={inp} value={f.status} onChange={e=>s("status",e.target.value)}>{STATUSES.map(x=><option key={x}>{x}</option>)}</select></div><div><label style={lbl}>Fase</label><select style={inp} value={f.phase} onChange={e=>s("phase",e.target.value)}>{PHASES.map(x=><option key={x}>{x}</option>)}</select></div></div><div style={{display:"flex",gap:10,justifyContent:"flex-end",marginTop:8}}><button style={btnS} onClick={onCancel}>Cancelar</button><button style={{...btnP,opacity:saving?0.5:1}} onClick={handleSave}>{saving?"Guardando...":"Guardar"}</button></div></div></Modal>);}
 
-function AddAdvanceForm({onSave,onCancel}){const[f,sF]=useState({title:"",description:"",nextStep:"",date:new Date().toISOString().split("T")[0],registeredBy:""});const s=(k,v)=>sF(p=>({...p,[k]:v}));const ok=f.title&&f.nextStep&&f.date&&f.registeredBy;return(<Modal title="Registrar avance" onClose={onCancel}><div style={{display:"flex",flexDirection:"column",gap:16}}><div><label style={lbl}>Título *</label><input style={inp} value={f.title} onChange={e=>s("title",e.target.value)}/></div><div><label style={lbl}>Descripción</label><textarea style={{...inp,minHeight:80,resize:"vertical"}} value={f.description} onChange={e=>s("description",e.target.value)}/></div><div><label style={lbl}>Próximo paso *</label><textarea style={{...inp,minHeight:60,resize:"vertical"}} value={f.nextStep} onChange={e=>s("nextStep",e.target.value)}/></div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}><div><label style={lbl}>Fecha *</label><input style={inp} type="date" value={f.date} onChange={e=>s("date",e.target.value)}/></div><div><label style={lbl}>Registrado por *</label><input style={inp} value={f.registeredBy} onChange={e=>s("registeredBy",e.target.value)}/></div></div><div style={{padding:"14px 16px",background:C.bg,borderRadius:6,border:`1px dashed ${C.border}`,textAlign:"center",color:C.textMuted,fontSize:12,fontWeight:600}}>📷 Foto evidencia (próximamente)</div><div style={{display:"flex",gap:10,justifyContent:"flex-end",marginTop:8}}><button style={btnS} onClick={onCancel}>Cancelar</button><button style={{...btnP,opacity:ok?1:0.5,pointerEvents:ok?"auto":"none"}} onClick={()=>onSave({id:Date.now(),...f})}>Guardar</button></div></div></Modal>);}
+function AddAdvanceForm({onSave,onCancel}){const[f,sF]=useState({title:"",description:"",nextStep:"",date:new Date().toISOString().split("T")[0],registeredBy:""});const[saving,setSaving]=useState(false);const s=(k,v)=>sF(p=>({...p,[k]:v}));const ok=f.title&&f.nextStep&&f.date&&f.registeredBy&&!saving;
+  const handleSave=async()=>{setSaving(true);try{await onSave(f);}catch(e){alert("Error: "+e.message);setSaving(false);}};
+  return(<Modal title="Registrar avance" onClose={onCancel}><div style={{display:"flex",flexDirection:"column",gap:16}}><div><label style={lbl}>Título *</label><input style={inp} value={f.title} onChange={e=>s("title",e.target.value)}/></div><div><label style={lbl}>Descripción</label><textarea style={{...inp,minHeight:80,resize:"vertical"}} value={f.description} onChange={e=>s("description",e.target.value)}/></div><div><label style={lbl}>Próximo paso *</label><textarea style={{...inp,minHeight:60,resize:"vertical"}} value={f.nextStep} onChange={e=>s("nextStep",e.target.value)}/></div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}><div><label style={lbl}>Fecha *</label><input style={inp} type="date" value={f.date} onChange={e=>s("date",e.target.value)}/></div><div><label style={lbl}>Registrado por *</label><input style={inp} value={f.registeredBy} onChange={e=>s("registeredBy",e.target.value)}/></div></div><div style={{padding:"14px 16px",background:C.bg,borderRadius:6,border:`1px dashed ${C.border}`,textAlign:"center",color:C.textMuted,fontSize:12,fontWeight:600}}>📷 Foto evidencia (próximamente)</div><div style={{display:"flex",gap:10,justifyContent:"flex-end",marginTop:8}}><button style={btnS} onClick={onCancel}>Cancelar</button><button style={{...btnP,opacity:ok?1:0.5,pointerEvents:ok?"auto":"none"}} onClick={handleSave}>{saving?"Guardando...":"Guardar"}</button></div></div></Modal>);}
 
-function AddContractForm({onSave,onCancel}){const[f,sF]=useState({provider:"",concept:"",value:""});const s=(k,v)=>sF(p=>({...p,[k]:v}));const ok=f.provider&&f.concept&&f.value;return(<Modal title="Nuevo contrato / ODS" onClose={onCancel}><div style={{display:"flex",flexDirection:"column",gap:16}}><div><label style={lbl}>Proveedor *</label><input style={inp} value={f.provider} onChange={e=>s("provider",e.target.value)}/></div><div><label style={lbl}>Concepto *</label><input style={inp} value={f.concept} onChange={e=>s("concept",e.target.value)}/></div><div><label style={lbl}>Valor (COP) *</label><input style={inp} type="number" value={f.value} onChange={e=>s("value",e.target.value)}/></div><div style={{display:"flex",gap:10,justifyContent:"flex-end",marginTop:8}}><button style={btnS} onClick={onCancel}>Cancelar</button><button style={{...btnP,opacity:ok?1:0.5,pointerEvents:ok?"auto":"none"}} onClick={()=>onSave({id:Date.now(),provider:f.provider,concept:f.concept,value:Number(f.value),payments:[]})}>Crear</button></div></div></Modal>);}
+function AddContractForm({onSave,onCancel}){const[f,sF]=useState({provider:"",concept:"",value:""});const[saving,setSaving]=useState(false);const s=(k,v)=>sF(p=>({...p,[k]:v}));const ok=f.provider&&f.concept&&f.value&&!saving;
+  const handleSave=async()=>{setSaving(true);try{await onSave({...f,value:Number(f.value)});}catch(e){alert("Error: "+e.message);setSaving(false);}};
+  return(<Modal title="Nuevo contrato / ODS" onClose={onCancel}><div style={{display:"flex",flexDirection:"column",gap:16}}><div><label style={lbl}>Proveedor *</label><input style={inp} value={f.provider} onChange={e=>s("provider",e.target.value)}/></div><div><label style={lbl}>Concepto *</label><input style={inp} value={f.concept} onChange={e=>s("concept",e.target.value)}/></div><div><label style={lbl}>Valor (COP) *</label><input style={inp} type="number" value={f.value} onChange={e=>s("value",e.target.value)}/></div><div style={{display:"flex",gap:10,justifyContent:"flex-end",marginTop:8}}><button style={btnS} onClick={onCancel}>Cancelar</button><button style={{...btnP,opacity:ok?1:0.5,pointerEvents:ok?"auto":"none"}} onClick={handleSave}>{saving?"Guardando...":"Crear"}</button></div></div></Modal>);}
 
-function AddPaymentForm({contract,onSave,onCancel}){const[f,sF]=useState({amount:"",date:new Date().toISOString().split("T")[0],note:""});const s=(k,v)=>sF(p=>({...p,[k]:v}));const ok=f.amount&&f.date;return(<Modal title={`Pago — ${contract.provider}`} onClose={onCancel}><div style={{display:"flex",flexDirection:"column",gap:16}}><div style={{padding:"12px 16px",background:"#F7F9FB",borderRadius:6,border:`1px solid ${C.borderLight}`}}><p style={{margin:"0 0 2px",...lbl}}>Contrato</p><p style={{margin:0,fontSize:13,fontWeight:700,color:C.navy}}>{contract.concept}</p><p style={{margin:"4px 0 0",fontSize:12,color:C.textSecondary}}>Valor: {fmt(contract.value)} · Pagado: {fmt(contract.payments.reduce((s,p)=>s+p.amount,0))}</p></div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}><div><label style={lbl}>Monto (COP) *</label><input style={inp} type="number" value={f.amount} onChange={e=>s("amount",e.target.value)}/></div><div><label style={lbl}>Fecha *</label><input style={inp} type="date" value={f.date} onChange={e=>s("date",e.target.value)}/></div></div><div><label style={lbl}>Nota</label><input style={inp} value={f.note} onChange={e=>s("note",e.target.value)} placeholder="Ej: Anticipo 50%"/></div><div style={{display:"flex",gap:10,justifyContent:"flex-end",marginTop:8}}><button style={btnS} onClick={onCancel}>Cancelar</button><button style={{...btnP,opacity:ok?1:0.5,pointerEvents:ok?"auto":"none"}} onClick={()=>onSave({id:Date.now(),amount:Number(f.amount),date:f.date,note:f.note})}>Registrar</button></div></div></Modal>);}
+function AddPaymentForm({contract,onSave,onCancel}){const[f,sF]=useState({amount:"",date:new Date().toISOString().split("T")[0],note:""});const[saving,setSaving]=useState(false);const s=(k,v)=>sF(p=>({...p,[k]:v}));const ok=f.amount&&f.date&&!saving;
+  const handleSave=async()=>{setSaving(true);try{await onSave({...f,amount:Number(f.amount)});}catch(e){alert("Error: "+e.message);setSaving(false);}};
+  return(<Modal title={`Pago — ${contract.provider}`} onClose={onCancel}><div style={{display:"flex",flexDirection:"column",gap:16}}><div style={{padding:"12px 16px",background:"#F7F9FB",borderRadius:6,border:`1px solid ${C.borderLight}`}}><p style={{margin:"0 0 2px",...lbl}}>Contrato</p><p style={{margin:0,fontSize:13,fontWeight:700,color:C.navy}}>{contract.concept}</p><p style={{margin:"4px 0 0",fontSize:12,color:C.textSecondary}}>Valor: {fmt(contract.value)} · Pagado: {fmt(contract.payments.reduce((s,p)=>s+p.amount,0))}</p></div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}><div><label style={lbl}>Monto (COP) *</label><input style={inp} type="number" value={f.amount} onChange={e=>s("amount",e.target.value)}/></div><div><label style={lbl}>Fecha *</label><input style={inp} type="date" value={f.date} onChange={e=>s("date",e.target.value)}/></div></div><div><label style={lbl}>Nota</label><input style={inp} value={f.note} onChange={e=>s("note",e.target.value)} placeholder="Ej: Anticipo 50%"/></div><div style={{display:"flex",gap:10,justifyContent:"flex-end",marginTop:8}}><button style={btnS} onClick={onCancel}>Cancelar</button><button style={{...btnP,opacity:ok?1:0.5,pointerEvents:ok?"auto":"none"}} onClick={handleSave}>{saving?"Guardando...":"Registrar"}</button></div></div></Modal>);}
 
 /* ─── Contract Block ─── */
 function ContractBlock({contract,onAddPayment}){
@@ -233,7 +133,7 @@ function ContractBlock({contract,onAddPayment}){
 
 /* ─── Card ─── */
 function ProjectCard({project:p,onClick}){
-  const sc=STATUS_CONFIG[p.status];const paid=sumPay(p.contracts);const lastAdv=p.advances[0];const hasBudget=p.budget!=null;const budgetPct=hasBudget?Math.min((paid/p.budget)*100,100):0;
+  const sc=STATUS_CONFIG[p.status]||STATUS_CONFIG["En curso"];const paid=sumPay(p.contracts);const lastAdv=p.advances[0];const hasBudget=p.budget!=null;const budgetPct=hasBudget?Math.min((paid/p.budget)*100,100):0;
   return(
     <div onClick={onClick} style={{background:C.cardBg,borderRadius:10,cursor:"pointer",border:`1px solid ${C.border}`,overflow:"hidden",transition:"all 0.3s cubic-bezier(.4,0,.2,1)",display:"flex",flexDirection:"column"}}
       onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-3px)";e.currentTarget.style.boxShadow=`0 12px 36px ${C.navy}18`;}}
@@ -262,7 +162,7 @@ function ProjectCard({project:p,onClick}){
 
 /* ─── Detail ─── */
 function ProjectDetail({project:p,onBack,onEdit,onAddAdvance,onAddContract,onAddPayment}){
-  const{isEditor}=useAuth();const[tab,setTab]=useState("timeline");const sc=STATUS_CONFIG[p.status];
+  const{isEditor}=useAuth();const[tab,setTab]=useState("timeline");const sc=STATUS_CONFIG[p.status]||STATUS_CONFIG["En curso"];
   const paid=sumPay(p.contracts);const contracted=sumVal(p.contracts);const lastAdv=p.advances[0];const hasBudget=p.budget!=null;
   return(
     <div style={{maxWidth:840,margin:"0 auto"}}>
@@ -291,14 +191,12 @@ function ProjectDetail({project:p,onBack,onEdit,onAddAdvance,onAddContract,onAdd
         </div>
         <div style={{padding:"18px 24px"}}><PhaseStepper currentPhase={p.phase}/></div>
       </Section>
-      {lastAdv&&<Section title="Próximo paso" accent={C.orange} style={{marginBottom:16}}><div style={{padding:"16px 24px",display:"flex",gap:14,alignItems:"flex-start"}}><div style={{width:30,height:30,borderRadius:6,flexShrink:0,background:"#FFF5EE",border:`1px solid #FDDCBE`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,color:C.orange,fontWeight:800}}>→</div><p style={{fontSize:13,color:C.navy,margin:0,lineHeight:1.55,fontWeight:600}}>{lastAdv.nextStep}</p></div></Section>}
-      {/* Tabs */}
+      {lastAdv&&<Section title="Próximo paso" accent={C.orange} style={{marginBottom:16}}><div style={{padding:"16px 24px",display:"flex",gap:14,alignItems:"flex-start"}}><div style={{width:30,height:30,borderRadius:6,flexShrink:0,background:"#FFF5EE",border:"1px solid #FDDCBE",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,color:C.orange,fontWeight:800}}>→</div><p style={{fontSize:13,color:C.navy,margin:0,lineHeight:1.55,fontWeight:600}}>{lastAdv.nextStep}</p></div></Section>}
       <div style={{display:"flex",marginBottom:16,background:C.white,borderRadius:8,border:`1px solid ${C.border}`,overflow:"hidden"}}>
         {[{key:"timeline",label:"Avances",count:p.advances.length},{key:"finance",label:"Contratos y pagos",count:p.contracts.length}].map((t,i)=>(
           <button key={t.key} onClick={()=>setTab(t.key)} style={{flex:1,padding:"12px 20px",borderRight:i===0?`1px solid ${C.border}`:"none",background:tab===t.key?C.navy:C.white,color:tab===t.key?C.white:C.textSecondary,fontWeight:700,fontSize:11,cursor:"pointer",fontFamily:font,border:"none",textTransform:"uppercase",letterSpacing:"0.08em"}}>{t.label} · {t.count}</button>
         ))}
       </div>
-      {/* Timeline */}
       {tab==="timeline"&&<>{isEditor&&<button onClick={onAddAdvance} style={{...btnP,marginBottom:16,fontSize:12}}>+ Registrar avance</button>}
         <div style={{position:"relative",paddingLeft:30}}><div style={{position:"absolute",left:10,top:10,bottom:10,width:2,background:C.border}}/>
           {p.advances.map((adv,i)=>(
@@ -313,7 +211,6 @@ function ProjectDetail({project:p,onBack,onEdit,onAddAdvance,onAddContract,onAdd
           {p.advances.length===0&&<p style={{color:C.textMuted,fontSize:13,padding:"20px 0"}}>No hay avances.</p>}
         </div>
       </>}
-      {/* Finance */}
       {tab==="finance"&&<>
         <Section title="Resumen financiero" accent={C.teal} style={{marginBottom:16}}>
           <div style={{display:"grid",gridTemplateColumns:hasBudget?"1fr 1fr 1fr 1fr":"1fr 1fr 1fr"}}>
@@ -347,75 +244,132 @@ function ProjectDetail({project:p,onBack,onEdit,onAddAdvance,onAddContract,onAdd
 
 /* ─── App ─── */
 export default function App(){
-  const[projects,setProjects]=useState(INIT);const[selId,setSelId]=useState(null);const[filter,setFilter]=useState("Todos");const[modal,setModal]=useState(null);const[payContract,setPayContract]=useState(null);const[isEditor,setIsEditor]=useState(false);
-  const sel=projects.find(p=>p.id===selId)||null;
-  const filtered=useMemo(()=>filter==="Todos"?projects:projects.filter(p=>p.status===filter),[filter,projects]);
-  const stats=useMemo(()=>({total:projects.length,risk:projects.filter(p=>p.status==="En riesgo").length,budget:projects.reduce((s,p)=>s+(p.budget||0),0),spent:projects.reduce((s,p)=>s+sumPay(p.contracts),0)}),[projects]);
-  const updateProj=useCallback(u=>{setProjects(ps=>ps.map(p=>p.id===u.id?u:p));setModal(null);},[]);
-  const addAdvance=useCallback(a=>{setProjects(ps=>ps.map(p=>p.id===selId?{...p,advances:[a,...p.advances]}:p));setModal(null);},[selId]);
-  const addContract=useCallback(c=>{setProjects(ps=>ps.map(p=>p.id===selId?{...p,contracts:[...p.contracts,c]}:p));setModal(null);},[selId]);
-  const addPayment=useCallback((cId,pay)=>{setProjects(ps=>ps.map(p=>p.id===selId?{...p,contracts:p.contracts.map(c=>c.id===cId?{...c,payments:[...c.payments,pay]}:c)}:p));setModal(null);setPayContract(null);},[selId]);
+  const[projects,setProjects]=useState([]);
+  const[loading,setLoading]=useState(true);
+  const[error,setError]=useState(null);
+  const[selId,setSelId]=useState(null);
+  const[filter,setFilter]=useState("Todos");
+  const[modal,setModal]=useState(null);
+  const[payContract,setPayContract]=useState(null);
+  const[isEditor,setIsEditor]=useState(false);
 
-  const content=sel?(
-    <ProjectDetail project={sel} onBack={()=>{setSelId(null);setModal(null);}} onEdit={()=>setModal("edit")} onAddAdvance={()=>setModal("advance")} onAddContract={()=>setModal("contract")} onAddPayment={c=>{setPayContract(c);setModal("payment");}}/>
-  ):(
-    <div style={{maxWidth:1100,margin:"0 auto"}}>
-      {/* Header */}
-      <div style={{marginBottom:24}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:12,marginBottom:20}}>
-          <div style={{display:"flex",alignItems:"center",gap:16}}>
-            <img src={LOGO_SRC} alt="I+D" style={{height:48}}/>
-            <div>
-              <p style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.12em",color:C.textMuted,margin:"0 0 2px"}}>Innovación y Transformación Digital</p>
-              <h1 style={{fontSize:22,fontWeight:700,color:C.navy,margin:0,letterSpacing:"-0.01em"}}>Portafolio de Proyectos</h1>
-            </div>
-          </div>
-          <div style={{display:"flex",alignItems:"center",gap:10}}>
-            <AuthBar isEditor={isEditor} onLogin={()=>setIsEditor(true)} onLogout={()=>setIsEditor(false)}/>
-            {isEditor&&<button onClick={()=>setModal("create")} style={{...btnP,fontSize:12}}>+ Nuevo proyecto</button>}
-          </div>
-        </div>
+  // Load data from SharePoint
+  const reload = useCallback(async () => {
+    try {
+      const data = await loadAll();
+      setProjects(data);
+      setError(null);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-        {/* Stats */}
-        <div style={{display:"flex",background:C.white,borderRadius:8,border:`1px solid ${C.border}`,overflow:"hidden",marginBottom:16}}>
-          {[{label:"Proyectos",value:stats.total},{label:"En riesgo",value:stats.risk,accent:stats.risk>0?C.orange:null},{label:"Presupuesto total",value:fmtS(stats.budget)},{label:"Total pagado",value:fmtS(stats.spent)}].map((s,i)=>(
-            <div key={i} style={{flex:1,padding:"14px 18px",borderRight:i<3?`1px solid ${C.borderLight}`:"none"}}>
-              <p style={{fontSize:9,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",color:C.textMuted,margin:"0 0 2px"}}>{s.label}</p>
-              <p style={{fontSize:20,fontWeight:700,color:s.accent||C.navy,margin:0}}>{s.value}</p>
-            </div>
-          ))}
-        </div>
+  useEffect(() => { reload(); }, [reload]);
 
-        {/* Filters */}
-        <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
-          {["Todos","En curso","En riesgo","Pausado","Completado"].map(f=>{const a=filter===f;const cfg=f!=="Todos"?STATUS_CONFIG[f]:null;return(
-            <button key={f} onClick={()=>setFilter(f)} style={{padding:"6px 14px",borderRadius:6,border:`1px solid ${a?C.navy:C.border}`,background:a?C.navy:C.white,color:a?C.white:C.textSecondary,fontWeight:700,fontSize:11,cursor:"pointer",fontFamily:font}}>{cfg?cfg.icon+" ":""}{f}</button>
-          );})}
-        </div>
-      </div>
+  const sel = projects.find(p => p.id === selId) || null;
+  const filtered = useMemo(() => filter === "Todos" ? projects : projects.filter(p => p.status === filter), [filter, projects]);
+  const stats = useMemo(() => ({ total: projects.length, risk: projects.filter(p => p.status === "En riesgo").length, budget: projects.reduce((s, p) => s + (p.budget || 0), 0), spent: projects.reduce((s, p) => s + sumPay(p.contracts), 0) }), [projects]);
 
-      {/* Grid */}
-      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill, minmax(300px, 1fr))",gap:14}}>
-        {filtered.map(p=><ProjectCard key={p.id} project={p} onClick={()=>setSelId(p.id)}/>)}
-      </div>
-      {filtered.length===0&&<div style={{textAlign:"center",padding:60,color:C.textMuted,fontSize:13}}>No hay proyectos con estado "{filter}"</div>}
+  const handleCreateProject = useCallback(async (data) => {
+    await crearProyecto(data);
+    setModal(null);
+    await reload();
+  }, [reload]);
 
-      {/* Bottom accent bar */}
-      <div style={{display:"flex",height:4,borderRadius:2,marginTop:32,overflow:"hidden"}}>
-        <div style={{flex:3,background:C.navy}}/><div style={{flex:1,background:C.orange}}/>
+  const handleEditProject = useCallback(async (data) => {
+    await editarProyecto(data);
+    setModal(null);
+    await reload();
+  }, [reload]);
+
+  const handleAddAdvance = useCallback(async (data) => {
+    await crearAvance(selId, data);
+    setModal(null);
+    await reload();
+  }, [selId, reload]);
+
+  const handleAddContract = useCallback(async (data) => {
+    await crearContrato(selId, data);
+    setModal(null);
+    await reload();
+  }, [selId, reload]);
+
+  const handleAddPayment = useCallback(async (data) => {
+    await crearPago(payContract.id, data);
+    setModal(null);
+    setPayContract(null);
+    await reload();
+  }, [payContract, reload]);
+
+  if (loading) return (
+    <div style={{ minHeight: "100vh", background: C.bg, fontFamily: font, display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <Spinner text="Cargando portafolio..." />
+    </div>
+  );
+
+  if (error) return (
+    <div style={{ minHeight: "100vh", background: C.bg, fontFamily: font, display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ textAlign: "center", padding: 40 }}>
+        <p style={{ fontSize: 16, color: "#dc2626", fontWeight: 700, marginBottom: 8 }}>Error al cargar datos</p>
+        <p style={{ fontSize: 13, color: C.textSecondary, marginBottom: 16 }}>{error}</p>
+        <button onClick={() => { setLoading(true); setError(null); reload(); }} style={btnP}>Reintentar</button>
       </div>
     </div>
   );
 
-  return(
-    <AuthCtx.Provider value={{isEditor}}>
-      <div style={{minHeight:"100vh",background:C.bg,padding:"22px 16px",fontFamily:font}}>
+  const content = sel ? (
+    <ProjectDetail project={sel} onBack={() => { setSelId(null); setModal(null); }} onEdit={() => setModal("edit")} onAddAdvance={() => setModal("advance")} onAddContract={() => setModal("contract")} onAddPayment={c => { setPayContract(c); setModal("payment"); }} />
+  ) : (
+    <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+      <div style={{ marginBottom: 24 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12, marginBottom: 20 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+            <img src={LOGO_SRC} alt="I+D" style={{ height: 48 }} />
+            <div>
+              <p style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: C.textMuted, margin: "0 0 2px" }}>Innovación y Transformación Digital</p>
+              <h1 style={{ fontSize: 22, fontWeight: 700, color: C.navy, margin: 0, letterSpacing: "-0.01em" }}>Portafolio de Proyectos</h1>
+            </div>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <AuthBar isEditor={isEditor} onLogin={() => setIsEditor(true)} onLogout={() => setIsEditor(false)} />
+            {isEditor && <button onClick={() => setModal("create")} style={{ ...btnP, fontSize: 12 }}>+ Nuevo proyecto</button>}
+          </div>
+        </div>
+        <div style={{ display: "flex", background: C.white, borderRadius: 8, border: `1px solid ${C.border}`, overflow: "hidden", marginBottom: 16 }}>
+          {[{ label: "Proyectos", value: stats.total }, { label: "En riesgo", value: stats.risk, accent: stats.risk > 0 ? C.orange : null }, { label: "Presupuesto total", value: fmtS(stats.budget) }, { label: "Total pagado", value: fmtS(stats.spent) }].map((s, i) => (
+            <div key={i} style={{ flex: 1, padding: "14px 18px", borderRight: i < 3 ? `1px solid ${C.borderLight}` : "none" }}>
+              <p style={{ fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: C.textMuted, margin: "0 0 2px" }}>{s.label}</p>
+              <p style={{ fontSize: 20, fontWeight: 700, color: s.accent || C.navy, margin: 0 }}>{s.value}</p>
+            </div>
+          ))}
+        </div>
+        <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+          {["Todos", ...STATUSES].map(f => { const a = filter === f; const cfg = f !== "Todos" ? STATUS_CONFIG[f] : null; return (
+            <button key={f} onClick={() => setFilter(f)} style={{ padding: "6px 14px", borderRadius: 6, border: `1px solid ${a ? C.navy : C.border}`, background: a ? C.navy : C.white, color: a ? C.white : C.textSecondary, fontWeight: 700, fontSize: 11, cursor: "pointer", fontFamily: font }}>{cfg ? cfg.icon + " " : ""}{f}</button>
+          ); })}
+        </div>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 14 }}>
+        {filtered.map(p => <ProjectCard key={p.id} project={p} onClick={() => setSelId(p.id)} />)}
+      </div>
+      {filtered.length === 0 && <div style={{ textAlign: "center", padding: 60, color: C.textMuted, fontSize: 13 }}>No hay proyectos{filter !== "Todos" ? ` con estado "${filter}"` : ""}</div>}
+      <div style={{ display: "flex", height: 4, borderRadius: 2, marginTop: 32, overflow: "hidden" }}>
+        <div style={{ flex: 3, background: C.navy }} /><div style={{ flex: 1, background: C.orange }} />
+      </div>
+    </div>
+  );
+
+  return (
+    <AuthCtx.Provider value={{ isEditor }}>
+      <div style={{ minHeight: "100vh", background: C.bg, padding: "22px 16px", fontFamily: font }}>
         {content}
-        {modal==="create"&&<CreateProjectForm onSave={p=>{setProjects(ps=>[...ps,p]);setModal(null);}} onCancel={()=>setModal(null)}/>}
-        {modal==="edit"&&sel&&<EditProjectForm project={sel} onSave={updateProj} onCancel={()=>setModal(null)}/>}
-        {modal==="advance"&&<AddAdvanceForm onSave={addAdvance} onCancel={()=>setModal(null)}/>}
-        {modal==="contract"&&<AddContractForm onSave={addContract} onCancel={()=>setModal(null)}/>}
-        {modal==="payment"&&payContract&&<AddPaymentForm contract={payContract} onSave={pay=>addPayment(payContract.id,pay)} onCancel={()=>{setModal(null);setPayContract(null);}}/>}
+        {modal === "create" && <CreateProjectForm onSave={handleCreateProject} onCancel={() => setModal(null)} />}
+        {modal === "edit" && sel && <EditProjectForm project={sel} onSave={handleEditProject} onCancel={() => setModal(null)} />}
+        {modal === "advance" && <AddAdvanceForm onSave={handleAddAdvance} onCancel={() => setModal(null)} />}
+        {modal === "contract" && <AddContractForm onSave={handleAddContract} onCancel={() => setModal(null)} />}
+        {modal === "payment" && payContract && <AddPaymentForm contract={payContract} onSave={handleAddPayment} onCancel={() => { setModal(null); setPayContract(null); }} />}
       </div>
     </AuthCtx.Provider>
   );
