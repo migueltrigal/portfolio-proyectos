@@ -7,6 +7,14 @@ export const API = {
   crearPago: "https://default510f9de096154a978ffa0354dd6cd6.c7.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/61fb6ce094944cdb8a58bfbae6e49a42/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=qxGaJBSMIyZWFsPXpo7mjIb3n4rccrDHJjbbAeKtHqQ",
 };
 
+function stripEmpty(obj) {
+  const clean = {};
+  for (const [k, v] of Object.entries(obj)) {
+    if (v !== null && v !== undefined && v !== "") clean[k] = v;
+  }
+  return clean;
+}
+
 async function apiCall(url, method = "GET", data = null) {
   const opts = {
     method,
@@ -77,29 +85,29 @@ export async function loadAll() {
 }
 
 export async function crearProyecto(data) {
-  return apiCall(API.crearProyecto, "POST", {
+  return apiCall(API.crearProyecto, "POST", stripEmpty({
     nombre: data.name,
     descripcion: data.description,
     responsable: data.responsible,
     fechaInicio: data.startDate,
-    fechaEstimadaFin: data.estimatedEnd || null,
+    fechaEstimadaFin: data.estimatedEnd,
     presupuesto: data.budget,
     estado: data.status,
     fase: data.phase,
-  });
+  }));
 }
 
 export async function editarProyecto(data) {
-  return apiCall(API.editarProyecto, "POST", {
+  return apiCall(API.editarProyecto, "POST", stripEmpty({
     id: data.id,
     nombre: data.name,
     descripcion: data.description,
     responsable: data.responsible,
-    fechaEstimadaFin: data.estimatedEnd || null,
+    fechaEstimadaFin: data.estimatedEnd,
     presupuesto: data.budget,
     estado: data.status,
     fase: data.phase,
-  });
+  }));
 }
 
 export async function crearAvance(proyectoId, data) {
