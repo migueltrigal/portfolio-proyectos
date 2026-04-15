@@ -5,6 +5,7 @@ export const API = {
   crearAvance: "https://default510f9de096154a978ffa0354dd6cd6.c7.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/cf34aec0e4a0421b9d01db83ce17818c/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=wVFuDJh2W6xpWF-70hcMnA4zhasDoafe2yFunWe8FbM",
   crearContrato: "https://default510f9de096154a978ffa0354dd6cd6.c7.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/7c9953ec484d488798d9289f9f1531a6/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=DWZDZC_-STNfCqg2z14mIqMSofaZoSUJl8c3FIm5qBk",
   crearPago: "https://default510f9de096154a978ffa0354dd6cd6.c7.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/61fb6ce094944cdb8a58bfbae6e49a42/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=qxGaJBSMIyZWFsPXpo7mjIb3n4rccrDHJjbbAeKtHqQ",
+  subirFoto: "https://default510f9de096154a978ffa0354dd6cd6.c7.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/6b53d261cb3a49dbb997e578c88698ef/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=6lG5me7_jEmC2Xzi5PdcowjhbhKeAHFZ-qOVowjQhLw",
 };
 
 function stripEmpty(obj) {
@@ -23,7 +24,9 @@ async function apiCall(url, method = "GET", data = null) {
   if (data) opts.body = JSON.stringify(data);
   const res = await fetch(url, opts);
   if (!res.ok) throw new Error(`API error: ${res.status}`);
-  return res.json();
+  // Power Automate write flows devuelven {"ok":true}, no un body con ID
+  const text = await res.text();
+  try { return JSON.parse(text); } catch { return {}; }
 }
 
 export async function loadAll() {
@@ -39,6 +42,7 @@ export async function loadAll() {
     budget: p.Presupuesto || null,
     status: p.Estado?.Value || p.Estado || "En curso",
     phase: p.Fase?.Value || p.Fase || "Ideación",
+    fotoPrincipal: p.FotoPrincipal || "",
   }));
 
   const avances = (raw.avances || []).map(a => ({
@@ -49,6 +53,7 @@ export async function loadAll() {
     description: a.Descripcion || "",
     nextStep: a.ProximoPaso || "",
     registeredBy: a.RegistradoPor || "",
+    fotoEvidencia: a.FotoEvidencia || "",
   }));
 
   const contratos = (raw.contratos || []).map(c => ({
@@ -94,6 +99,7 @@ export async function crearProyecto(data) {
     presupuesto: data.budget,
     estado: data.status,
     fase: data.phase,
+    fotoPrincipal: data.fotoPrincipal,
   }));
 }
 
@@ -107,18 +113,24 @@ export async function editarProyecto(data) {
     presupuesto: data.budget,
     estado: data.status,
     fase: data.phase,
+    fotoPrincipal: data.fotoPrincipal,
   }));
 }
 
 export async function crearAvance(proyectoId, data) {
-  return apiCall(API.crearAvance, "POST", {
+  return apiCall(API.crearAvance, "POST", stripEmpty({
     proyectoId,
     titulo: data.title,
     descripcion: data.description,
     proximoPaso: data.nextStep,
     fecha: data.date,
     registradoPor: data.registeredBy,
-  });
+    fotoEvidencia: data.fotoEvidencia,
+  }));
+}
+
+export async function subirFoto({ fileName, fileContent, folder }) {
+  return apiCall(API.subirFoto, "POST", { fileName, fileContent, folder });
 }
 
 export async function crearContrato(proyectoId, data) {
