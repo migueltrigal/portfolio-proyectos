@@ -84,6 +84,7 @@ export async function loadAll() {
     budget: p.Presupuesto || null,
     status: p.Estado?.Value || p.Estado || "En curso",
     phase: p.Fase?.Value || p.Fase || "Ideación",
+    sede: p.Sede || "",
     fotoPrincipal: p.FotoPrincipal || "",
   }));
 
@@ -141,6 +142,7 @@ export async function crearProyecto(data) {
     presupuesto: data.budget,
     estado: data.status,
     fase: data.phase,
+    sede: data.sede,
     fotoPrincipal: data.fotoPrincipal,
   }));
 }
@@ -155,6 +157,7 @@ export async function editarProyecto(data) {
     presupuesto: data.budget,
     estado: data.status,
     fase: data.phase,
+    sede: data.sede,
     fotoPrincipal: data.fotoPrincipal,
   }));
 }

@@ -17,6 +17,7 @@ function useAuth() { return useContext(AuthCtx); }
 const PHASES = ["Ideación","Iniciación","Prototipado","Piloto","Implementación","Entrega","Seguimiento"];
 const PHASE_INDEX = Object.fromEntries(PHASES.map((p, i) => [p, i]));
 const STATUSES = ["En curso","En riesgo","Pausado","Completado","Cancelado"];
+const SEDES = ["Trigal Norte","Trigal Sur","Trigal Oriente","Corporativo","Todas las sedes"];
 const STATUS_CONFIG = {
   "En curso":    { color: "#16a34a", bg: "#f0fdf4", border: "#bbf7d0", icon: "●" },
   "En riesgo":   { color: C.orange, bg: "#FFF5EE", border: "#FDDCBE", icon: "▲" },
@@ -69,10 +70,45 @@ function AuthBar({ isEditor, onLogin, onLogout }) {
 }
 
 /* ─── Shared ─── */
-function PhaseStepper({currentPhase,compact=false}){
+// Barra compacta para tarjetas: nombre legible + segmentos de progreso
+function PhaseBar({phase}){
+  const idx=PHASE_INDEX[phase]??0;
+  return(
+    <div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:5}}>
+        <span style={{fontSize:11,fontWeight:700,color:C.teal,background:"#EEF7F8",border:`1px solid #B8DDE2`,padding:"2px 9px",borderRadius:4,letterSpacing:"0.01em"}}>{phase}</span>
+        <span style={{fontSize:10,color:C.textMuted,fontWeight:600}}>{idx+1}/{PHASES.length}</span>
+      </div>
+      <div style={{display:"flex",gap:2}}>
+        {PHASES.map((_,i)=><div key={i} style={{flex:1,height:3,borderRadius:2,background:i<=idx?C.teal:C.borderLight}}/>)}
+      </div>
+    </div>
+  );
+}
+
+// Stepper completo para la vista de detalle
+function PhaseStepper({currentPhase}){
   const idx=PHASE_INDEX[currentPhase]??0;
-  if(compact) return(<div style={{display:"flex",alignItems:"center",gap:3}}>{PHASES.map((p,i)=>(<div key={p} title={p} style={{width:i===idx?"auto":8,height:8,borderRadius:i===idx?4:"50%",padding:i===idx?"0 8px":0,background:i<=idx?C.teal:"#D1D9E6",display:"flex",alignItems:"center",justifyContent:"center"}}>{i===idx&&<span style={{fontSize:9,fontWeight:700,color:C.white,whiteSpace:"nowrap"}}>{p}</span>}</div>))}</div>);
-  return(<div style={{display:"flex",alignItems:"center",width:"100%"}}>{PHASES.map((p,i)=>{const done=i<idx,active=i===idx;return(<div key={p} style={{display:"flex",alignItems:"center",flex:i<PHASES.length-1?1:"none"}}><div style={{display:"flex",flexDirection:"column",alignItems:"center",zIndex:1}}><div style={{width:active?28:16,height:active?28:16,borderRadius:"50%",background:done||active?C.teal:"#E8ECF2",border:active?`3px solid ${C.teal}44`:"none",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:active?`0 0 0 4px ${C.teal}15`:"none"}}>{done&&<span style={{color:C.white,fontSize:9,fontWeight:800}}>✓</span>}{active&&<span style={{color:C.white,fontSize:8,fontWeight:800}}>{i+1}</span>}{!done&&!active&&<span style={{color:"#94a3b8",fontSize:7,fontWeight:700}}>{i+1}</span>}</div><span style={{fontSize:8,fontWeight:active?800:600,color:done||active?C.teal:C.textMuted,marginTop:4,whiteSpace:"nowrap"}}>{p}</span></div>{i<PHASES.length-1&&<div style={{flex:1,height:2,minWidth:6,background:done?C.teal:"#E2E8F0",margin:"0 2px",marginBottom:16}}/>}</div>);})}</div>);
+  return(
+    <div style={{display:"flex",alignItems:"flex-start",width:"100%"}}>
+      {PHASES.map((p,i)=>{
+        const done=i<idx,active=i===idx;
+        return(
+          <div key={p} style={{display:"flex",alignItems:"center",flex:i<PHASES.length-1?1:"none"}}>
+            <div style={{display:"flex",flexDirection:"column",alignItems:"center",zIndex:1}}>
+              <div style={{width:active?34:20,height:active?34:20,borderRadius:"50%",background:done||active?C.teal:"#E8ECF2",border:active?`3px solid ${C.teal}55`:"2px solid transparent",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:active?`0 0 0 5px ${C.teal}18`:"none",flexShrink:0,transition:"all 0.2s"}}>
+                {done&&<span style={{color:C.white,fontSize:11,fontWeight:800}}>✓</span>}
+                {active&&<span style={{color:C.white,fontSize:11,fontWeight:800}}>{i+1}</span>}
+                {!done&&!active&&<span style={{color:"#94a3b8",fontSize:10,fontWeight:700}}>{i+1}</span>}
+              </div>
+              <span style={{fontSize:active?11:10,fontWeight:active?800:600,color:active?C.teal:done?"#267B8Aaa":C.textMuted,marginTop:6,whiteSpace:"nowrap",letterSpacing:active?"0.01em":0}}>{p}</span>
+            </div>
+            {i<PHASES.length-1&&<div style={{flex:1,height:2,minWidth:8,background:done?C.teal:"#E2E8F0",margin:"0 3px",marginBottom:22}}/>}
+          </div>
+        );
+      })}
+    </div>
+  );
 }
 
 function Section({title,accent,action,children,style:sx}){return(<div style={{background:C.cardBg,borderRadius:10,border:`1px solid ${C.border}`,overflow:"hidden",...sx}}>{title&&<div style={{padding:"13px 24px",borderBottom:`1px solid ${C.border}`,background:"#F7F9FB",display:"flex",alignItems:"center",justifyContent:"space-between"}}><div style={{display:"flex",alignItems:"center",gap:8}}>{accent&&<div style={{width:3,height:16,borderRadius:2,background:accent}}/>}<h3 style={{margin:0,fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.1em",color:C.textSecondary,fontFamily:font}}>{title}</h3></div>{action}</div>}{children}</div>);}
@@ -103,13 +139,13 @@ function PhotoField({ value, onChange, folder, label = "Foto" }) {
 }
 
 /* ─── Forms ─── */
-function CreateProjectForm({onSave,onCancel}){const[f,sF]=useState({name:"",description:"",responsible:"",startDate:"",estimatedEnd:"",budget:"",status:"En curso",phase:"Ideación",fotoPrincipal:""});const[saving,setSaving]=useState(false);const s=(k,v)=>sF(p=>({...p,[k]:v}));const ok=f.name&&f.responsible&&f.startDate&&!saving;
+function CreateProjectForm({onSave,onCancel}){const[f,sF]=useState({name:"",description:"",responsible:"",sede:"",startDate:"",estimatedEnd:"",budget:"",status:"En curso",phase:"Ideación",fotoPrincipal:""});const[saving,setSaving]=useState(false);const s=(k,v)=>sF(p=>({...p,[k]:v}));const ok=f.name&&f.responsible&&f.startDate&&!saving;
   const handleSave=async()=>{setSaving(true);try{await onSave({...f,budget:f.budget?Number(f.budget):null});}catch(e){alert("Error al crear: "+e.message);setSaving(false);}};
-  return(<Modal title="Nuevo proyecto" onClose={onCancel}><div style={{display:"flex",flexDirection:"column",gap:16}}><div><label style={lbl}>Nombre *</label><input style={inp} value={f.name} onChange={e=>s("name",e.target.value)} placeholder="Ej: Automatización de riego"/></div><div><label style={lbl}>Descripción</label><textarea style={{...inp,minHeight:80,resize:"vertical"}} value={f.description} onChange={e=>s("description",e.target.value)}/></div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}><div><label style={lbl}>Responsable *</label><input style={inp} value={f.responsible} onChange={e=>s("responsible",e.target.value)}/></div><div><label style={lbl}>Presupuesto (COP)</label><input style={inp} type="number" value={f.budget} onChange={e=>s("budget",e.target.value)} placeholder="Opcional"/></div></div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}><div><label style={lbl}>Fecha inicio *</label><input style={inp} type="date" value={f.startDate} onChange={e=>s("startDate",e.target.value)}/></div><div><label style={lbl}>Fecha est. terminación</label><input style={inp} type="date" value={f.estimatedEnd} onChange={e=>s("estimatedEnd",e.target.value)}/></div></div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}><div><label style={lbl}>Estado</label><select style={inp} value={f.status} onChange={e=>s("status",e.target.value)}>{STATUSES.map(x=><option key={x}>{x}</option>)}</select></div><div><label style={lbl}>Fase</label><select style={inp} value={f.phase} onChange={e=>s("phase",e.target.value)}>{PHASES.map(x=><option key={x}>{x}</option>)}</select></div></div><PhotoField value={f.fotoPrincipal} onChange={v=>s("fotoPrincipal",v)} folder="proyectos" label="Foto principal"/><div style={{display:"flex",gap:10,justifyContent:"flex-end",marginTop:8}}><button style={btnS} onClick={onCancel}>Cancelar</button><button style={{...btnP,opacity:ok?1:0.5,pointerEvents:ok?"auto":"none"}} onClick={handleSave}>{saving?"Guardando...":"Crear"}</button></div></div></Modal>);}
+  return(<Modal title="Nuevo proyecto" onClose={onCancel}><div style={{display:"flex",flexDirection:"column",gap:16}}><div><label style={lbl}>Nombre *</label><input style={inp} value={f.name} onChange={e=>s("name",e.target.value)} placeholder="Ej: Automatización de riego"/></div><div><label style={lbl}>Descripción</label><textarea style={{...inp,minHeight:80,resize:"vertical"}} value={f.description} onChange={e=>s("description",e.target.value)}/></div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}><div><label style={lbl}>Responsable *</label><input style={inp} value={f.responsible} onChange={e=>s("responsible",e.target.value)}/></div><div><label style={lbl}>Sede</label><select style={inp} value={f.sede} onChange={e=>s("sede",e.target.value)}><option value="">Sin asignar</option>{SEDES.map(x=><option key={x}>{x}</option>)}</select></div></div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}><div><label style={lbl}>Presupuesto (COP)</label><input style={inp} type="number" value={f.budget} onChange={e=>s("budget",e.target.value)} placeholder="Opcional"/></div><div/></div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}><div><label style={lbl}>Fecha inicio *</label><input style={inp} type="date" value={f.startDate} onChange={e=>s("startDate",e.target.value)}/></div><div><label style={lbl}>Fecha est. terminación</label><input style={inp} type="date" value={f.estimatedEnd} onChange={e=>s("estimatedEnd",e.target.value)}/></div></div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}><div><label style={lbl}>Estado</label><select style={inp} value={f.status} onChange={e=>s("status",e.target.value)}>{STATUSES.map(x=><option key={x}>{x}</option>)}</select></div><div><label style={lbl}>Fase</label><select style={inp} value={f.phase} onChange={e=>s("phase",e.target.value)}>{PHASES.map(x=><option key={x}>{x}</option>)}</select></div></div><PhotoField value={f.fotoPrincipal} onChange={v=>s("fotoPrincipal",v)} folder="proyectos" label="Foto principal"/><div style={{display:"flex",gap:10,justifyContent:"flex-end",marginTop:8}}><button style={btnS} onClick={onCancel}>Cancelar</button><button style={{...btnP,opacity:ok?1:0.5,pointerEvents:ok?"auto":"none"}} onClick={handleSave}>{saving?"Guardando...":"Crear"}</button></div></div></Modal>);}
 
-function EditProjectForm({project:p,onSave,onCancel}){const[f,sF]=useState({name:p.name,description:p.description,responsible:p.responsible,estimatedEnd:p.estimatedEnd,budget:p.budget!=null?String(p.budget):"",status:p.status,phase:p.phase,fotoPrincipal:p.fotoPrincipal||""});const[saving,setSaving]=useState(false);const s=(k,v)=>sF(x=>({...x,[k]:v}));
+function EditProjectForm({project:p,onSave,onCancel}){const[f,sF]=useState({name:p.name,description:p.description,responsible:p.responsible,sede:p.sede||"",estimatedEnd:p.estimatedEnd,budget:p.budget!=null?String(p.budget):"",status:p.status,phase:p.phase,fotoPrincipal:p.fotoPrincipal||""});const[saving,setSaving]=useState(false);const s=(k,v)=>sF(x=>({...x,[k]:v}));
   const handleSave=async()=>{setSaving(true);try{await onSave({...p,...f,budget:f.budget?Number(f.budget):null});}catch(e){alert("Error: "+e.message);setSaving(false);}};
-  return(<Modal title="Editar proyecto" onClose={onCancel}><div style={{display:"flex",flexDirection:"column",gap:16}}><div><label style={lbl}>Nombre</label><input style={inp} value={f.name} onChange={e=>s("name",e.target.value)}/></div><div><label style={lbl}>Descripción</label><textarea style={{...inp,minHeight:80,resize:"vertical"}} value={f.description} onChange={e=>s("description",e.target.value)}/></div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}><div><label style={lbl}>Responsable</label><input style={inp} value={f.responsible} onChange={e=>s("responsible",e.target.value)}/></div><div><label style={lbl}>Presupuesto (COP)</label><input style={inp} type="number" value={f.budget} onChange={e=>s("budget",e.target.value)} placeholder="Opcional"/></div></div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12}}><div><label style={lbl}>Fecha est. fin</label><input style={inp} type="date" value={f.estimatedEnd} onChange={e=>s("estimatedEnd",e.target.value)}/></div><div><label style={lbl}>Estado</label><select style={inp} value={f.status} onChange={e=>s("status",e.target.value)}>{STATUSES.map(x=><option key={x}>{x}</option>)}</select></div><div><label style={lbl}>Fase</label><select style={inp} value={f.phase} onChange={e=>s("phase",e.target.value)}>{PHASES.map(x=><option key={x}>{x}</option>)}</select></div></div><PhotoField value={f.fotoPrincipal} onChange={v=>s("fotoPrincipal",v)} folder="proyectos" label="Foto principal"/><div style={{display:"flex",gap:10,justifyContent:"flex-end",marginTop:8}}><button style={btnS} onClick={onCancel}>Cancelar</button><button style={{...btnP,opacity:saving?0.5:1}} onClick={handleSave}>{saving?"Guardando...":"Guardar"}</button></div></div></Modal>);}
+  return(<Modal title="Editar proyecto" onClose={onCancel}><div style={{display:"flex",flexDirection:"column",gap:16}}><div><label style={lbl}>Nombre</label><input style={inp} value={f.name} onChange={e=>s("name",e.target.value)}/></div><div><label style={lbl}>Descripción</label><textarea style={{...inp,minHeight:80,resize:"vertical"}} value={f.description} onChange={e=>s("description",e.target.value)}/></div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}><div><label style={lbl}>Responsable</label><input style={inp} value={f.responsible} onChange={e=>s("responsible",e.target.value)}/></div><div><label style={lbl}>Sede</label><select style={inp} value={f.sede} onChange={e=>s("sede",e.target.value)}><option value="">Sin asignar</option>{SEDES.map(x=><option key={x}>{x}</option>)}</select></div></div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12}}><div><label style={lbl}>Presupuesto (COP)</label><input style={inp} type="number" value={f.budget} onChange={e=>s("budget",e.target.value)} placeholder="Opcional"/></div><div><label style={lbl}>Fecha est. fin</label><input style={inp} type="date" value={f.estimatedEnd} onChange={e=>s("estimatedEnd",e.target.value)}/></div><div/></div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}><div><label style={lbl}>Estado</label><select style={inp} value={f.status} onChange={e=>s("status",e.target.value)}>{STATUSES.map(x=><option key={x}>{x}</option>)}</select></div><div><label style={lbl}>Fase</label><select style={inp} value={f.phase} onChange={e=>s("phase",e.target.value)}>{PHASES.map(x=><option key={x}>{x}</option>)}</select></div></div><PhotoField value={f.fotoPrincipal} onChange={v=>s("fotoPrincipal",v)} folder="proyectos" label="Foto principal"/><div style={{display:"flex",gap:10,justifyContent:"flex-end",marginTop:8}}><button style={btnS} onClick={onCancel}>Cancelar</button><button style={{...btnP,opacity:saving?0.5:1}} onClick={handleSave}>{saving?"Guardando...":"Guardar"}</button></div></div></Modal>);}
 
 function AddAdvanceForm({onSave,onCancel}){const[f,sF]=useState({title:"",description:"",nextStep:"",date:new Date().toISOString().split("T")[0],registeredBy:"",fotoEvidencia:""});const[saving,setSaving]=useState(false);const s=(k,v)=>sF(p=>({...p,[k]:v}));const ok=f.title&&f.nextStep&&f.date&&f.registeredBy&&!saving;
   const handleSave=async()=>{setSaving(true);try{await onSave(f);}catch(e){alert("Error: "+e.message);setSaving(false);}};
@@ -168,10 +204,11 @@ function ProjectCard({project:p,onClick}){
           <span style={{fontSize:10,color:C.textMuted,fontWeight:600}}>{lastAdv?fmtD(lastAdv.date):"Sin avances"}</span>
         </div>
         <h3 style={{fontSize:14,fontWeight:700,color:C.navy,margin:"0 0 3px",lineHeight:1.3}}>{p.name}</h3>
-        <p style={{fontSize:11,color:C.textSecondary,margin:0,fontWeight:600}}>{p.responsible}</p>
+        <p style={{fontSize:11,color:C.textSecondary,margin:"0 0 2px",fontWeight:600}}>{p.responsible}</p>
+        {p.sede&&<p style={{fontSize:10,color:C.textMuted,margin:0,fontWeight:600}}>📍 {p.sede}</p>}
       </div>
       <div style={{height:1,background:C.borderLight}}/>
-      <div style={{padding:"12px 18px"}}><PhaseStepper currentPhase={p.phase} compact/></div>
+      <div style={{padding:"12px 18px"}}><PhaseBar phase={p.phase}/></div>
       <div style={{height:1,background:C.borderLight}}/>
       <div style={{padding:"12px 18px"}}>
         <div style={{display:"flex",justifyContent:"space-between",fontSize:10,fontWeight:700,color:C.textSecondary,marginBottom:5}}><span>{fmtS(paid)} pagado</span><span>{hasBudget?`de ${fmtS(p.budget)}`:`${p.contracts.length} contratos`}</span></div>
@@ -198,7 +235,8 @@ function ProjectDetail({project:p,onBack,onEdit,onAddAdvance,onAddContract,onAdd
               <span style={{fontSize:10,fontWeight:700,color:C.teal,background:"#EEF7F8",padding:"4px 10px",borderRadius:4,textTransform:"uppercase"}}>Fase: {p.phase}</span>
             </div>
             <h1 style={{fontSize:21,fontWeight:700,color:C.navy,margin:"0 0 6px",lineHeight:1.25}}>{p.name}</h1>
-            <p style={{fontSize:12,color:C.textSecondary,margin:"0 0 12px",fontWeight:600}}>Responsable: {p.responsible}</p>
+            <p style={{fontSize:12,color:C.textSecondary,margin:"0 0 4px",fontWeight:600}}>Responsable: {p.responsible}</p>
+            {p.sede&&<p style={{fontSize:11,color:C.textMuted,margin:"0 0 12px",fontWeight:600}}>📍 {p.sede}</p>}
             <p style={{fontSize:13,color:C.textPrimary,margin:0,lineHeight:1.6}}>{p.description}</p>
           </div>
           {p.fotoPrincipal
