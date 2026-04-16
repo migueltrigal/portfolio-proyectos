@@ -10,7 +10,18 @@ const C = {
 };
 const font = "'Aptos', 'Segoe UI', -apple-system, sans-serif";
 
-const AuthCtx = createContext({ isEditor: false });
+function useMediaQuery(query) {
+  const [matches, setMatches] = useState(() => window.matchMedia(query).matches);
+  useEffect(() => {
+    const mq = window.matchMedia(query);
+    const handler = e => setMatches(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, [query]);
+  return matches;
+}
+
+const AuthCtx = createContext({ isEditor: false, isMobile: false });
 const EDITOR_KEY = "innova2026";
 function useAuth() { return useContext(AuthCtx); }
 
@@ -112,7 +123,10 @@ function PhaseStepper({currentPhase}){
 
 function Section({title,accent,action,children,style:sx}){return(<div style={{background:C.cardBg,borderRadius:10,border:`1px solid ${C.border}`,overflow:"hidden",...sx}}>{title&&<div style={{padding:"13px 24px",borderBottom:`1px solid ${C.border}`,background:"#F7F9FB",display:"flex",alignItems:"center",justifyContent:"space-between"}}><div style={{display:"flex",alignItems:"center",gap:8}}>{accent&&<div style={{width:3,height:16,borderRadius:2,background:accent}}/>}<h3 style={{margin:0,fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.1em",color:C.textSecondary,fontFamily:font}}>{title}</h3></div>{action}</div>}{children}</div>);}
 
-function Modal({title,onClose,children}){return(<div style={{position:"fixed",inset:0,zIndex:1000,background:"rgba(14,40,65,0.5)",backdropFilter:"blur(4px)",display:"flex",alignItems:"center",justifyContent:"center",padding:16}} onClick={onClose}><div onClick={e=>e.stopPropagation()} style={{background:C.white,borderRadius:12,border:`1px solid ${C.border}`,boxShadow:"0 24px 64px rgba(14,40,65,0.20)",width:"100%",maxWidth:560,maxHeight:"90vh",overflow:"auto"}}><div style={{padding:"18px 24px",borderBottom:`1px solid ${C.border}`,display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,background:C.white,zIndex:1,borderRadius:"12px 12px 0 0"}}><h2 style={{margin:0,fontSize:16,fontWeight:700,color:C.navy,fontFamily:font}}>{title}</h2><button onClick={onClose} style={{background:"none",border:"none",fontSize:20,color:C.textMuted,cursor:"pointer",padding:4,lineHeight:1}}>✕</button></div><div style={{padding:"20px 24px"}}>{children}</div></div></div>);}
+function Modal({title,onClose,children}){
+  const{isMobile}=useAuth();
+  const ph=isMobile?"14px 16px":"18px 24px",pb=isMobile?"16px 16px":"20px 24px";
+  return(<div style={{position:"fixed",inset:0,zIndex:1000,background:"rgba(14,40,65,0.5)",backdropFilter:"blur(4px)",display:"flex",alignItems:"center",justifyContent:"center",padding:isMobile?8:16}} onClick={onClose}><div onClick={e=>e.stopPropagation()} style={{background:C.white,borderRadius:12,border:`1px solid ${C.border}`,boxShadow:"0 24px 64px rgba(14,40,65,0.20)",width:"100%",maxWidth:560,maxHeight:"90vh",overflow:"auto"}}><div style={{padding:ph,borderBottom:`1px solid ${C.border}`,display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,background:C.white,zIndex:1,borderRadius:"12px 12px 0 0"}}><h2 style={{margin:0,fontSize:16,fontWeight:700,color:C.navy,fontFamily:font}}>{title}</h2><button onClick={onClose} style={{background:"none",border:"none",fontSize:20,color:C.textMuted,cursor:"pointer",padding:4,lineHeight:1}}>✕</button></div><div style={{padding:pb}}>{children}</div></div></div>);}
 
 /* ─── Photo Helpers ─── */
 function PhotoField({ value, onChange, folder, label = "Foto" }) {
@@ -139,16 +153,19 @@ function PhotoField({ value, onChange, folder, label = "Foto" }) {
 
 /* ─── Forms ─── */
 function CreateProjectForm({onSave,onCancel}){const[f,sF]=useState({name:"",description:"",responsible:"",sede:"",startDate:"",estimatedEnd:"",budget:"",status:"En curso",phase:"Ideación",fotoPrincipal:""});const[saving,setSaving]=useState(false);const s=(k,v)=>sF(p=>({...p,[k]:v}));const ok=f.name&&f.responsible&&f.startDate&&!saving;
+  const{isMobile}=useAuth();const g1=isMobile?"1fr":"1fr 1fr";
   const handleSave=async()=>{setSaving(true);try{await onSave({...f,budget:f.budget?Number(f.budget):null});}catch(e){alert("Error al crear: "+e.message);setSaving(false);}};
-  return(<Modal title="Nuevo proyecto" onClose={onCancel}><div style={{display:"flex",flexDirection:"column",gap:16}}><div><label style={lbl}>Nombre *</label><input style={inp} value={f.name} onChange={e=>s("name",e.target.value)} placeholder="Ej: Automatización de riego"/></div><div><label style={lbl}>Descripción</label><textarea style={{...inp,minHeight:80,resize:"vertical"}} value={f.description} onChange={e=>s("description",e.target.value)}/></div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}><div><label style={lbl}>Responsable *</label><input style={inp} value={f.responsible} onChange={e=>s("responsible",e.target.value)}/></div><div><label style={lbl}>Sede</label><input style={inp} value={f.sede} onChange={e=>s("sede",e.target.value)} placeholder="Ej: Trigal Norte"/></div></div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}><div><label style={lbl}>Presupuesto (COP)</label><input style={inp} type="number" value={f.budget} onChange={e=>s("budget",e.target.value)} placeholder="Opcional"/></div><div/></div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}><div><label style={lbl}>Fecha inicio *</label><input style={inp} type="date" value={f.startDate} onChange={e=>s("startDate",e.target.value)}/></div><div><label style={lbl}>Fecha est. terminación</label><input style={inp} type="date" value={f.estimatedEnd} onChange={e=>s("estimatedEnd",e.target.value)}/></div></div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}><div><label style={lbl}>Estado</label><select style={inp} value={f.status} onChange={e=>s("status",e.target.value)}>{STATUSES.map(x=><option key={x}>{x}</option>)}</select></div><div><label style={lbl}>Fase</label><select style={inp} value={f.phase} onChange={e=>s("phase",e.target.value)}>{PHASES.map(x=><option key={x}>{x}</option>)}</select></div></div><PhotoField value={f.fotoPrincipal} onChange={v=>s("fotoPrincipal",v)} folder="proyectos" label="Foto principal"/><div style={{display:"flex",gap:10,justifyContent:"flex-end",marginTop:8}}><button style={btnS} onClick={onCancel}>Cancelar</button><button style={{...btnP,opacity:ok?1:0.5,pointerEvents:ok?"auto":"none"}} onClick={handleSave}>{saving?"Guardando...":"Crear"}</button></div></div></Modal>);}
+  return(<Modal title="Nuevo proyecto" onClose={onCancel}><div style={{display:"flex",flexDirection:"column",gap:16}}><div><label style={lbl}>Nombre *</label><input style={inp} value={f.name} onChange={e=>s("name",e.target.value)} placeholder="Ej: Automatización de riego"/></div><div><label style={lbl}>Descripción</label><textarea style={{...inp,minHeight:80,resize:"vertical"}} value={f.description} onChange={e=>s("description",e.target.value)}/></div><div style={{display:"grid",gridTemplateColumns:g1,gap:12}}><div><label style={lbl}>Responsable *</label><input style={inp} value={f.responsible} onChange={e=>s("responsible",e.target.value)}/></div><div><label style={lbl}>Sede</label><input style={inp} value={f.sede} onChange={e=>s("sede",e.target.value)} placeholder="Ej: Trigal Norte"/></div></div><div style={{display:"grid",gridTemplateColumns:g1,gap:12}}><div><label style={lbl}>Presupuesto (COP)</label><input style={inp} type="number" value={f.budget} onChange={e=>s("budget",e.target.value)} placeholder="Opcional"/></div><div/></div><div style={{display:"grid",gridTemplateColumns:g1,gap:12}}><div><label style={lbl}>Fecha inicio *</label><input style={inp} type="date" value={f.startDate} onChange={e=>s("startDate",e.target.value)}/></div><div><label style={lbl}>Fecha est. terminación</label><input style={inp} type="date" value={f.estimatedEnd} onChange={e=>s("estimatedEnd",e.target.value)}/></div></div><div style={{display:"grid",gridTemplateColumns:g1,gap:12}}><div><label style={lbl}>Estado</label><select style={inp} value={f.status} onChange={e=>s("status",e.target.value)}>{STATUSES.map(x=><option key={x}>{x}</option>)}</select></div><div><label style={lbl}>Fase</label><select style={inp} value={f.phase} onChange={e=>s("phase",e.target.value)}>{PHASES.map(x=><option key={x}>{x}</option>)}</select></div></div><PhotoField value={f.fotoPrincipal} onChange={v=>s("fotoPrincipal",v)} folder="proyectos" label="Foto principal"/><div style={{display:"flex",gap:10,justifyContent:"flex-end",marginTop:8}}><button style={btnS} onClick={onCancel}>Cancelar</button><button style={{...btnP,opacity:ok?1:0.5,pointerEvents:ok?"auto":"none"}} onClick={handleSave}>{saving?"Guardando...":"Crear"}</button></div></div></Modal>);}
 
 function EditProjectForm({project:p,onSave,onCancel}){const[f,sF]=useState({name:p.name,description:p.description,responsible:p.responsible,sede:p.sede||"",estimatedEnd:p.estimatedEnd,budget:p.budget!=null?String(p.budget):"",status:p.status,phase:p.phase,fotoPrincipal:p.fotoPrincipal||""});const[saving,setSaving]=useState(false);const s=(k,v)=>sF(x=>({...x,[k]:v}));
+  const{isMobile}=useAuth();const g1=isMobile?"1fr":"1fr 1fr";
   const handleSave=async()=>{setSaving(true);try{await onSave({...p,...f,budget:f.budget?Number(f.budget):null});}catch(e){alert("Error: "+e.message);setSaving(false);}};
-  return(<Modal title="Editar proyecto" onClose={onCancel}><div style={{display:"flex",flexDirection:"column",gap:16}}><div><label style={lbl}>Nombre</label><input style={inp} value={f.name} onChange={e=>s("name",e.target.value)}/></div><div><label style={lbl}>Descripción</label><textarea style={{...inp,minHeight:80,resize:"vertical"}} value={f.description} onChange={e=>s("description",e.target.value)}/></div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}><div><label style={lbl}>Responsable</label><input style={inp} value={f.responsible} onChange={e=>s("responsible",e.target.value)}/></div><div><label style={lbl}>Sede</label><input style={inp} value={f.sede} onChange={e=>s("sede",e.target.value)} placeholder="Ej: Trigal Norte"/></div></div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12}}><div><label style={lbl}>Presupuesto (COP)</label><input style={inp} type="number" value={f.budget} onChange={e=>s("budget",e.target.value)} placeholder="Opcional"/></div><div><label style={lbl}>Fecha est. fin</label><input style={inp} type="date" value={f.estimatedEnd} onChange={e=>s("estimatedEnd",e.target.value)}/></div><div/></div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}><div><label style={lbl}>Estado</label><select style={inp} value={f.status} onChange={e=>s("status",e.target.value)}>{STATUSES.map(x=><option key={x}>{x}</option>)}</select></div><div><label style={lbl}>Fase</label><select style={inp} value={f.phase} onChange={e=>s("phase",e.target.value)}>{PHASES.map(x=><option key={x}>{x}</option>)}</select></div></div><PhotoField value={f.fotoPrincipal} onChange={v=>s("fotoPrincipal",v)} folder="proyectos" label="Foto principal"/><div style={{display:"flex",gap:10,justifyContent:"flex-end",marginTop:8}}><button style={btnS} onClick={onCancel}>Cancelar</button><button style={{...btnP,opacity:saving?0.5:1}} onClick={handleSave}>{saving?"Guardando...":"Guardar"}</button></div></div></Modal>);}
+  return(<Modal title="Editar proyecto" onClose={onCancel}><div style={{display:"flex",flexDirection:"column",gap:16}}><div><label style={lbl}>Nombre</label><input style={inp} value={f.name} onChange={e=>s("name",e.target.value)}/></div><div><label style={lbl}>Descripción</label><textarea style={{...inp,minHeight:80,resize:"vertical"}} value={f.description} onChange={e=>s("description",e.target.value)}/></div><div style={{display:"grid",gridTemplateColumns:g1,gap:12}}><div><label style={lbl}>Responsable</label><input style={inp} value={f.responsible} onChange={e=>s("responsible",e.target.value)}/></div><div><label style={lbl}>Sede</label><input style={inp} value={f.sede} onChange={e=>s("sede",e.target.value)} placeholder="Ej: Trigal Norte"/></div></div><div style={{display:"grid",gridTemplateColumns:g1,gap:12}}><div><label style={lbl}>Presupuesto (COP)</label><input style={inp} type="number" value={f.budget} onChange={e=>s("budget",e.target.value)} placeholder="Opcional"/></div><div><label style={lbl}>Fecha est. fin</label><input style={inp} type="date" value={f.estimatedEnd} onChange={e=>s("estimatedEnd",e.target.value)}/></div></div><div style={{display:"grid",gridTemplateColumns:g1,gap:12}}><div><label style={lbl}>Estado</label><select style={inp} value={f.status} onChange={e=>s("status",e.target.value)}>{STATUSES.map(x=><option key={x}>{x}</option>)}</select></div><div><label style={lbl}>Fase</label><select style={inp} value={f.phase} onChange={e=>s("phase",e.target.value)}>{PHASES.map(x=><option key={x}>{x}</option>)}</select></div></div><PhotoField value={f.fotoPrincipal} onChange={v=>s("fotoPrincipal",v)} folder="proyectos" label="Foto principal"/><div style={{display:"flex",gap:10,justifyContent:"flex-end",marginTop:8}}><button style={btnS} onClick={onCancel}>Cancelar</button><button style={{...btnP,opacity:saving?0.5:1}} onClick={handleSave}>{saving?"Guardando...":"Guardar"}</button></div></div></Modal>);}
 
 function AddAdvanceForm({onSave,onCancel}){const[f,sF]=useState({title:"",description:"",nextStep:"",date:new Date().toISOString().split("T")[0],registeredBy:"",fotoEvidencia:""});const[saving,setSaving]=useState(false);const s=(k,v)=>sF(p=>({...p,[k]:v}));const ok=f.title&&f.nextStep&&f.date&&f.registeredBy&&!saving;
+  const{isMobile}=useAuth();
   const handleSave=async()=>{setSaving(true);try{await onSave(f);}catch(e){alert("Error: "+e.message);setSaving(false);}};
-  return(<Modal title="Registrar avance" onClose={onCancel}><div style={{display:"flex",flexDirection:"column",gap:16}}><div><label style={lbl}>Título *</label><input style={inp} value={f.title} onChange={e=>s("title",e.target.value)}/></div><div><label style={lbl}>Descripción</label><textarea style={{...inp,minHeight:80,resize:"vertical"}} value={f.description} onChange={e=>s("description",e.target.value)}/></div><div><label style={lbl}>Próximo paso *</label><textarea style={{...inp,minHeight:60,resize:"vertical"}} value={f.nextStep} onChange={e=>s("nextStep",e.target.value)}/></div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}><div><label style={lbl}>Fecha *</label><input style={inp} type="date" value={f.date} onChange={e=>s("date",e.target.value)}/></div><div><label style={lbl}>Registrado por *</label><input style={inp} value={f.registeredBy} onChange={e=>s("registeredBy",e.target.value)}/></div></div><PhotoField value={f.fotoEvidencia} onChange={v=>s("fotoEvidencia",v)} folder="avances" label="Foto evidencia"/><div style={{display:"flex",gap:10,justifyContent:"flex-end",marginTop:8}}><button style={btnS} onClick={onCancel}>Cancelar</button><button style={{...btnP,opacity:ok?1:0.5,pointerEvents:ok?"auto":"none"}} onClick={handleSave}>{saving?"Guardando...":"Guardar"}</button></div></div></Modal>);}
+  return(<Modal title="Registrar avance" onClose={onCancel}><div style={{display:"flex",flexDirection:"column",gap:16}}><div><label style={lbl}>Título *</label><input style={inp} value={f.title} onChange={e=>s("title",e.target.value)}/></div><div><label style={lbl}>Descripción</label><textarea style={{...inp,minHeight:80,resize:"vertical"}} value={f.description} onChange={e=>s("description",e.target.value)}/></div><div><label style={lbl}>Próximo paso *</label><textarea style={{...inp,minHeight:60,resize:"vertical"}} value={f.nextStep} onChange={e=>s("nextStep",e.target.value)}/></div><div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:12}}><div><label style={lbl}>Fecha *</label><input style={inp} type="date" value={f.date} onChange={e=>s("date",e.target.value)}/></div><div><label style={lbl}>Registrado por *</label><input style={inp} value={f.registeredBy} onChange={e=>s("registeredBy",e.target.value)}/></div></div><PhotoField value={f.fotoEvidencia} onChange={v=>s("fotoEvidencia",v)} folder="avances" label="Foto evidencia"/><div style={{display:"flex",gap:10,justifyContent:"flex-end",marginTop:8}}><button style={btnS} onClick={onCancel}>Cancelar</button><button style={{...btnP,opacity:ok?1:0.5,pointerEvents:ok?"auto":"none"}} onClick={handleSave}>{saving?"Guardando...":"Guardar"}</button></div></div></Modal>);}
 
 function AddContractForm({onSave,onCancel}){const[f,sF]=useState({provider:"",concept:"",value:""});const[saving,setSaving]=useState(false);const s=(k,v)=>sF(p=>({...p,[k]:v}));const ok=f.provider&&f.concept&&f.value&&!saving;
   const handleSave=async()=>{setSaving(true);try{await onSave({...f,value:Number(f.value)});}catch(e){alert("Error: "+e.message);setSaving(false);}};
@@ -160,7 +177,7 @@ function AddPaymentForm({contract,onSave,onCancel}){const[f,sF]=useState({amount
 
 /* ─── Contract Block ─── */
 function ContractBlock({contract,onAddPayment}){
-  const{isEditor}=useAuth();const paid=contract.payments.reduce((s,p)=>s+p.amount,0);const pct=Math.min((paid/contract.value)*100,100);const pending=contract.value-paid;const[open,setOpen]=useState(false);
+  const{isEditor,isMobile}=useAuth();const paid=contract.payments.reduce((s,p)=>s+p.amount,0);const pct=Math.min((paid/contract.value)*100,100);const pending=contract.value-paid;const[open,setOpen]=useState(false);
   return(
     <div style={{border:`1px solid ${C.borderLight}`,borderRadius:8,overflow:"hidden",marginBottom:10}}>
       <div onClick={()=>setOpen(!open)} style={{padding:"14px 18px",cursor:"pointer",display:"flex",justifyContent:"space-between",alignItems:"center",background:open?"#F7F9FB":C.white}}>
@@ -172,15 +189,23 @@ function ContractBlock({contract,onAddPayment}){
         <span style={{fontSize:16,color:C.textMuted,marginLeft:12,transform:open?"rotate(180deg)":"",transition:"transform 0.2s"}}>▾</span>
       </div>
       {open&&<div style={{borderTop:`1px solid ${C.borderLight}`}}>
-        <div style={{display:"grid",gridTemplateColumns:"100px 1fr 120px",padding:"8px 18px",background:"#F7F9FB",borderBottom:`1px solid ${C.borderLight}`}}>
+        {!isMobile&&<div style={{display:"grid",gridTemplateColumns:"100px 1fr 120px",padding:"8px 18px",background:"#F7F9FB",borderBottom:`1px solid ${C.borderLight}`}}>
           {["Fecha","Nota","Monto"].map((h,i)=><span key={h} style={{fontSize:9,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.1em",color:C.textMuted,textAlign:i===2?"right":"left"}}>{h}</span>)}
-        </div>
+        </div>}
         {contract.payments.map(pay=>(
-          <div key={pay.id} style={{display:"grid",gridTemplateColumns:"100px 1fr 120px",padding:"10px 18px",borderBottom:`1px solid ${C.bg}`,alignItems:"center"}}>
-            <span style={{fontSize:11,color:C.textSecondary,fontWeight:600}}>{fmtD(pay.date)}</span>
-            <span style={{fontSize:12,color:C.textPrimary,fontWeight:500}}>{pay.note||"—"}</span>
-            <span style={{fontSize:12,fontWeight:700,color:C.navy,textAlign:"right"}}>{fmt(pay.amount)}</span>
-          </div>
+          isMobile
+            ?<div key={pay.id} style={{padding:"10px 18px",borderBottom:`1px solid ${C.bg}`}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:2}}>
+                  <span style={{fontSize:10,color:C.textMuted,fontWeight:600}}>{fmtD(pay.date)}</span>
+                  <span style={{fontSize:13,fontWeight:700,color:C.navy}}>{fmt(pay.amount)}</span>
+                </div>
+                {pay.note&&<span style={{fontSize:11,color:C.textSecondary,fontWeight:500}}>{pay.note}</span>}
+              </div>
+            :<div key={pay.id} style={{display:"grid",gridTemplateColumns:"100px 1fr 120px",padding:"10px 18px",borderBottom:`1px solid ${C.bg}`,alignItems:"center"}}>
+                <span style={{fontSize:11,color:C.textSecondary,fontWeight:600}}>{fmtD(pay.date)}</span>
+                <span style={{fontSize:12,color:C.textPrimary,fontWeight:500}}>{pay.note||"—"}</span>
+                <span style={{fontSize:12,fontWeight:700,color:C.navy,textAlign:"right"}}>{fmt(pay.amount)}</span>
+              </div>
         ))}
         {contract.payments.length===0&&<p style={{padding:16,textAlign:"center",color:C.textMuted,fontSize:12}}>Sin pagos.</p>}
         {isEditor&&<div style={{padding:"10px 18px",background:"#F7F9FB",borderTop:`1px solid ${C.borderLight}`}}><button onClick={e=>{e.stopPropagation();onAddPayment(contract);}} style={{...btnP,fontSize:11,padding:"7px 16px",background:C.teal}}>+ Registrar pago</button></div>}
@@ -221,14 +246,14 @@ function ProjectCard({project:p,onClick}){
 
 /* ─── Detail ─── */
 function ProjectDetail({project:p,onBack,onEdit,onAddAdvance,onAddContract,onAddPayment}){
-  const{isEditor}=useAuth();const[tab,setTab]=useState("timeline");const sc=STATUS_CONFIG[p.status]||STATUS_CONFIG["En curso"];
+  const{isEditor,isMobile}=useAuth();const[tab,setTab]=useState("timeline");const sc=STATUS_CONFIG[p.status]||STATUS_CONFIG["En curso"];
   const paid=sumPay(p.contracts);const contracted=sumVal(p.contracts);const lastAdv=p.advances[0];const hasBudget=p.budget!=null;
   return(
     <div style={{maxWidth:840,margin:"0 auto"}}>
       <button onClick={onBack} style={{...btnS,fontSize:12,padding:"8px 18px",marginBottom:16}}>← Proyectos</button>
       <Section title="Información general" accent={sc.color} action={isEditor?<button onClick={onEdit} style={{background:"none",border:`1px solid ${C.border}`,borderRadius:6,padding:"5px 14px",fontSize:11,fontWeight:700,color:C.textSecondary,cursor:"pointer",fontFamily:font}}>✎ Editar</button>:null} style={{marginBottom:16}}>
-        <div style={{padding:"24px 24px 0"}}><div style={{display:"flex",gap:20,flexWrap:"wrap"}}>
-          <div style={{flex:1,minWidth:250}}>
+        <div style={{padding:isMobile?"16px 16px 0":"24px 24px 0"}}><div style={{display:"flex",flexDirection:isMobile?"column":"row",gap:16,flexWrap:"wrap"}}>
+          <div style={{flex:1,minWidth:isMobile?"auto":250}}>
             <div style={{display:"flex",gap:8,alignItems:"center",marginBottom:14,flexWrap:"wrap"}}>
               <span style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.06em",color:sc.color,background:sc.bg,border:`1px solid ${sc.border}`,padding:"4px 10px",borderRadius:4}}>{sc.icon} {p.status}</span>
               <span style={{fontSize:10,fontWeight:700,color:C.teal,background:"#EEF7F8",padding:"4px 10px",borderRadius:4,textTransform:"uppercase"}}>Fase: {p.phase}</span>
@@ -239,11 +264,11 @@ function ProjectDetail({project:p,onBack,onEdit,onAddAdvance,onAddContract,onAdd
             <p style={{fontSize:13,color:C.textPrimary,margin:0,lineHeight:1.6}}>{p.description}</p>
           </div>
           {p.fotoPrincipal&&
-            <img src={p.fotoPrincipal} alt="foto principal" style={{width:200,height:160,objectFit:"contain",background:C.bg,borderRadius:8,flexShrink:0,display:"block",border:`1px solid ${C.border}`}}/>
+            <img src={p.fotoPrincipal} alt="foto principal" style={{width:isMobile?"100%":200,height:isMobile?200:160,objectFit:"contain",background:C.bg,borderRadius:8,flexShrink:0,display:"block",border:`1px solid ${C.border}`,order:isMobile?-1:0}}/>
           }
         </div></div>
         <div style={{height:1,background:C.borderLight,margin:"22px 0 0"}}/>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(120px, 1fr))"}}>
+        <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr 1fr":"repeat(auto-fit, minmax(120px, 1fr))"}}>
           {[{label:"Inicio",value:fmtD(p.startDate)},{label:"Fin estimado",value:fmtD(p.estimatedEnd)},...(hasBudget?[{label:"Presupuesto",value:fmtS(p.budget)}]:[]),{label:"Contratado",value:fmtS(contracted)},{label:"Pagado",value:fmtS(paid),accent:hasBudget&&paid>p.budget?"#dc2626":null},{label:"Últ. actualización",value:lastAdv?fmtD(lastAdv.date):"—"}].map((s,i)=>(
             <div key={i} style={{padding:"14px 18px",borderRight:`1px solid ${C.borderLight}`,borderBottom:`1px solid ${C.borderLight}`}}>
               <p style={{fontSize:9,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",color:C.textMuted,margin:"0 0 3px"}}>{s.label}</p>
@@ -314,6 +339,7 @@ export default function App(){
   const[modal,setModal]=useState(null);
   const[payContract,setPayContract]=useState(null);
   const[isEditor,setIsEditor]=useState(false);
+  const isMobile=useMediaQuery("(max-width: 640px)");
 
   // Load data from SharePoint
   const reload = useCallback(async () => {
@@ -386,34 +412,34 @@ export default function App(){
   ) : (
     <div style={{ maxWidth: 1100, margin: "0 auto" }}>
       <div style={{ marginBottom: 24 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12, marginBottom: 20 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            <img src={LOGO_SRC} alt="I+D" style={{ height: 48 }} />
+        <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 20 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <img src={LOGO_SRC} alt="I+D" style={{ height: isMobile ? 36 : 48, flexShrink: 0 }} />
             <div>
               <p style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: C.textMuted, margin: "0 0 2px" }}>Innovación y Transformación Digital</p>
-              <h1 style={{ fontSize: 22, fontWeight: 700, color: C.navy, margin: 0, letterSpacing: "-0.01em" }}>Portafolio de Proyectos</h1>
+              <h1 style={{ fontSize: isMobile ? 18 : 22, fontWeight: 700, color: C.navy, margin: 0, letterSpacing: "-0.01em" }}>Portafolio de Proyectos</h1>
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <AuthBar isEditor={isEditor} onLogin={() => setIsEditor(true)} onLogout={() => setIsEditor(false)} />
-            {isEditor && <button onClick={() => setModal("create")} style={{ ...btnP, fontSize: 12 }}>+ Nuevo proyecto</button>}
+            {isEditor && <button onClick={() => setModal("create")} style={{ ...btnP, fontSize: isMobile ? 12 : 12, padding: isMobile ? "8px 14px" : "10px 24px" }}>+ Nuevo proyecto</button>}
           </div>
         </div>
-        <div style={{ display: "flex", background: C.white, borderRadius: 8, border: `1px solid ${C.border}`, overflow: "hidden", marginBottom: 16 }}>
+        <div style={{ display: isMobile ? "grid" : "flex", gridTemplateColumns: "1fr 1fr", background: C.white, borderRadius: 8, border: `1px solid ${C.border}`, overflow: "hidden", marginBottom: 16 }}>
           {[{ label: "En curso", value: stats.enCurso, accent: "#16a34a" }, { label: "Pausados", value: stats.pausados, accent: "#64748b" }, { label: "Completados", value: stats.completados, accent: C.teal }, { label: "Cancelados", value: stats.cancelados, accent: stats.cancelados > 0 ? "#dc2626" : null }].map((s, i) => (
-            <div key={i} style={{ flex: 1, padding: "14px 18px", borderRight: i < 3 ? `1px solid ${C.borderLight}` : "none" }}>
+            <div key={i} style={{ flex: 1, padding: isMobile ? "10px 12px" : "14px 18px", borderRight: isMobile ? (i%2===0 ? `1px solid ${C.borderLight}` : "none") : (i<3 ? `1px solid ${C.borderLight}` : "none"), borderBottom: isMobile && i<2 ? `1px solid ${C.borderLight}` : "none" }}>
               <p style={{ fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: C.textMuted, margin: "0 0 2px" }}>{s.label}</p>
-              <p style={{ fontSize: 20, fontWeight: 700, color: s.accent || C.navy, margin: 0 }}>{s.value}</p>
+              <p style={{ fontSize: isMobile ? 17 : 20, fontWeight: 700, color: s.accent || C.navy, margin: 0 }}>{s.value}</p>
             </div>
           ))}
         </div>
-        <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: 5, flexWrap: isMobile ? "nowrap" : "wrap", overflowX: isMobile ? "auto" : "visible", paddingBottom: isMobile ? 4 : 0 }}>
           {["Todos", ...STATUSES].map(f => { const a = filter === f; const cfg = f !== "Todos" ? STATUS_CONFIG[f] : null; return (
-            <button key={f} onClick={() => setFilter(f)} style={{ padding: "6px 14px", borderRadius: 6, border: `1px solid ${a ? C.navy : C.border}`, background: a ? C.navy : C.white, color: a ? C.white : C.textSecondary, fontWeight: 700, fontSize: 11, cursor: "pointer", fontFamily: font }}>{cfg ? cfg.icon + " " : ""}{f}</button>
+            <button key={f} onClick={() => setFilter(f)} style={{ padding: isMobile ? "8px 12px" : "6px 14px", minHeight: 36, borderRadius: 6, border: `1px solid ${a ? C.navy : C.border}`, background: a ? C.navy : C.white, color: a ? C.white : C.textSecondary, fontWeight: 700, fontSize: 11, cursor: "pointer", fontFamily: font, flexShrink: 0, whiteSpace: "nowrap" }}>{cfg ? cfg.icon + " " : ""}{f}</button>
           ); })}
         </div>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 14 }}>
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fill, minmax(300px, 1fr))", gap: 14 }}>
         {filtered.map(p => <ProjectCard key={p.id} project={p} onClick={() => setSelId(p.id)} />)}
       </div>
       {filtered.length === 0 && <div style={{ textAlign: "center", padding: 60, color: C.textMuted, fontSize: 13 }}>No hay proyectos{filter !== "Todos" ? ` con estado "${filter}"` : ""}</div>}
@@ -424,8 +450,8 @@ export default function App(){
   );
 
   return (
-    <AuthCtx.Provider value={{ isEditor }}>
-      <div style={{ minHeight: "100vh", background: C.bg, padding: "22px 16px", fontFamily: font }}>
+    <AuthCtx.Provider value={{ isEditor, isMobile }}>
+      <div style={{ minHeight: "100vh", background: C.bg, padding: isMobile ? "12px 10px" : "22px 16px", fontFamily: font }}>
         {content}
         {modal === "create" && <CreateProjectForm onSave={handleCreateProject} onCancel={() => setModal(null)} />}
         {modal === "edit" && sel && <EditProjectForm project={sel} onSave={handleEditProject} onCancel={() => setModal(null)} />}
