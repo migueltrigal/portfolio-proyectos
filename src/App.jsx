@@ -130,7 +130,7 @@ function PhotoField({ value, onChange, folder, label = "Foto" }) {
     <div>
       <label style={lbl}>{label}</label>
       {value
-        ? <div><img src={value} alt="foto" style={{ width:"100%",maxHeight:150,objectFit:"cover",borderRadius:6,display:"block",border:`1px solid ${C.border}` }}/><label style={{ display:"inline-block",marginTop:6,fontSize:11,color:C.teal,cursor:uploading?"wait":"pointer",fontWeight:600 }}>{uploading?"Subiendo...":"📷 Cambiar foto"}<input type="file" accept="image/*" onChange={handleFile} style={{ display:"none" }} disabled={uploading}/></label></div>
+        ? <div><img src={value} alt="foto" style={{ width:"100%",height:"auto",borderRadius:6,display:"block",border:`1px solid ${C.border}` }}/><label style={{ display:"inline-block",marginTop:6,fontSize:11,color:C.teal,cursor:uploading?"wait":"pointer",fontWeight:600 }}>{uploading?"Subiendo...":"📷 Cambiar foto"}<input type="file" accept="image/*" onChange={handleFile} style={{ display:"none" }} disabled={uploading}/></label></div>
         : <label style={{ display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:90,borderRadius:6,background:C.bg,border:`1px dashed ${C.border}`,cursor:uploading?"wait":"pointer",color:C.textMuted,fontSize:12,fontWeight:600,gap:4 }}>{uploading?"Subiendo...":"📷 Seleccionar foto (opcional)"}<input type="file" accept="image/*" onChange={handleFile} style={{ display:"none" }} disabled={uploading}/></label>
       }
     </div>
@@ -238,9 +238,8 @@ function ProjectDetail({project:p,onBack,onEdit,onAddAdvance,onAddContract,onAdd
             {p.sede&&<p style={{fontSize:11,color:C.textMuted,margin:"0 0 12px",fontWeight:600}}>📍 {p.sede}</p>}
             <p style={{fontSize:13,color:C.textPrimary,margin:0,lineHeight:1.6}}>{p.description}</p>
           </div>
-          {p.fotoPrincipal
-            ?<img src={p.fotoPrincipal} alt="foto principal" style={{width:160,height:120,borderRadius:6,flexShrink:0,objectFit:"cover",border:`1px solid ${C.border}`}}/>
-            :<div style={{width:160,height:120,borderRadius:6,flexShrink:0,background:C.bg,border:`1px dashed ${C.border}`,display:"flex",alignItems:"center",justifyContent:"center",color:C.textMuted,fontSize:11,fontWeight:700,textAlign:"center",padding:12}}>📷<br/>Sin foto</div>
+          {p.fotoPrincipal&&
+            <img src={p.fotoPrincipal} alt="foto principal" style={{maxWidth:220,width:"100%",height:"auto",borderRadius:8,flexShrink:0,display:"block",border:`1px solid ${C.border}`,alignSelf:"flex-start"}}/>
           }
         </div></div>
         <div style={{height:1,background:C.borderLight,margin:"22px 0 0"}}/>
@@ -266,7 +265,7 @@ function ProjectDetail({project:p,onBack,onEdit,onAddAdvance,onAddContract,onAdd
             <div key={adv.id} style={{position:"relative",marginBottom:16}}>
               <div style={{position:"absolute",left:-25,top:24,width:i===0?16:10,height:i===0?16:10,borderRadius:"50%",background:i===0?C.teal:"#C5CDD8",border:`3px solid ${C.bg}`,boxShadow:i===0?`0 0 0 3px ${C.teal}20`:"none",transform:i===0?"translate(-3px,-3px)":""}}/>
               <Section><div style={{padding:"10px 20px",background:i===0?"#EEF7F8":"#F7F9FB",borderBottom:`1px solid ${C.borderLight}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}><span style={{fontSize:11,fontWeight:700,color:i===0?C.teal:C.textSecondary}}>{fmtD(adv.date)}</span><span style={{fontSize:10,color:C.textMuted,fontWeight:600}}>{adv.registeredBy}</span></div>
-                <div style={{padding:"16px 20px"}}><h4 style={{fontSize:13,fontWeight:700,color:C.navy,margin:"0 0 8px",lineHeight:1.35}}>{adv.title}</h4><p style={{fontSize:12,color:C.textSecondary,margin:"0 0 14px",lineHeight:1.6}}>{adv.description}</p>{adv.fotoEvidencia&&<img src={adv.fotoEvidencia} alt="evidencia" style={{width:"100%",maxHeight:200,borderRadius:6,objectFit:"cover",border:`1px solid ${C.border}`,display:"block"}}/>}</div>
+                <div style={{padding:"16px 20px"}}><h4 style={{fontSize:13,fontWeight:700,color:C.navy,margin:"0 0 8px",lineHeight:1.35}}>{adv.title}</h4><p style={{fontSize:12,color:C.textSecondary,margin:"0 0 14px",lineHeight:1.6}}>{adv.description}</p>{adv.fotoEvidencia&&<img src={adv.fotoEvidencia} alt="evidencia" style={{width:"100%",height:"auto",borderRadius:6,border:`1px solid ${C.border}`,display:"block"}}/>}</div>
                 <div style={{padding:"12px 20px",background:"#F7F9FB",borderTop:`1px solid ${C.borderLight}`}}><p style={{fontSize:9,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",color:C.textMuted,margin:"0 0 3px"}}>Próximo paso</p><p style={{fontSize:11,color:C.textPrimary,margin:0,lineHeight:1.5,fontWeight:600}}>{adv.nextStep}</p></div>
               </Section>
             </div>
