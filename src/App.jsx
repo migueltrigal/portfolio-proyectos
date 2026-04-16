@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback, useEffect, createContext, useContext } from "react";
 import { LOGO_SRC } from "./logo.js";
-import { loadAll, crearProyecto, editarProyecto, crearAvance, crearContrato, crearPago, subirFoto } from "./api.js";
+import { loadAll, crearProyecto, editarProyecto, crearAvance, crearContrato, crearPago, subirFotoGithub } from "./api.js";
 
 /* ─── Brand Tokens ─── */
 const C = {
@@ -80,40 +80,14 @@ function Section({title,accent,action,children,style:sx}){return(<div style={{ba
 function Modal({title,onClose,children}){return(<div style={{position:"fixed",inset:0,zIndex:1000,background:"rgba(14,40,65,0.5)",backdropFilter:"blur(4px)",display:"flex",alignItems:"center",justifyContent:"center",padding:16}} onClick={onClose}><div onClick={e=>e.stopPropagation()} style={{background:C.white,borderRadius:12,border:`1px solid ${C.border}`,boxShadow:"0 24px 64px rgba(14,40,65,0.20)",width:"100%",maxWidth:560,maxHeight:"90vh",overflow:"auto"}}><div style={{padding:"18px 24px",borderBottom:`1px solid ${C.border}`,display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,background:C.white,zIndex:1,borderRadius:"12px 12px 0 0"}}><h2 style={{margin:0,fontSize:16,fontWeight:700,color:C.navy,fontFamily:font}}>{title}</h2><button onClick={onClose} style={{background:"none",border:"none",fontSize:20,color:C.textMuted,cursor:"pointer",padding:4,lineHeight:1}}>✕</button></div><div style={{padding:"20px 24px"}}>{children}</div></div></div>);}
 
 /* ─── Photo Helpers ─── */
-async function compressImage(file, maxBytes = 900 * 1024) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = e => {
-      const img = new Image();
-      img.onload = () => {
-        const MAX = 1600;
-        let { width: w, height: h } = img;
-        if (w > MAX || h > MAX) { const r = Math.min(MAX / w, MAX / h); w = Math.round(w * r); h = Math.round(h * r); }
-        const canvas = document.createElement("canvas");
-        canvas.width = w; canvas.height = h;
-        canvas.getContext("2d").drawImage(img, 0, 0, w, h);
-        let q = 0.85, data = canvas.toDataURL("image/jpeg", q);
-        while (data.length * 0.75 > maxBytes && q > 0.3) { q -= 0.1; data = canvas.toDataURL("image/jpeg", q); }
-        resolve(data.split(",")[1]);
-      };
-      img.onerror = reject;
-      img.src = e.target.result;
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
-
 function PhotoField({ value, onChange, folder, label = "Foto" }) {
   const [uploading, setUploading] = useState(false);
   const handleFile = async e => {
     const file = e.target.files[0]; if (!file) return;
     setUploading(true);
     try {
-      const base64 = await compressImage(file);
-      const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
-      const res = await subirFoto({ fileName, fileContent: base64, folder });
-      onChange(res.url);
+      const url = await subirFotoGithub(file, folder);
+      onChange(url);
     } catch (err) { alert("Error al subir foto: " + err.message); }
     finally { setUploading(false); }
   };

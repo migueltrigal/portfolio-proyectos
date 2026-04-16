@@ -5,8 +5,50 @@ export const API = {
   crearAvance: "https://default510f9de096154a978ffa0354dd6cd6.c7.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/cf34aec0e4a0421b9d01db83ce17818c/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=wVFuDJh2W6xpWF-70hcMnA4zhasDoafe2yFunWe8FbM",
   crearContrato: "https://default510f9de096154a978ffa0354dd6cd6.c7.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/7c9953ec484d488798d9289f9f1531a6/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=DWZDZC_-STNfCqg2z14mIqMSofaZoSUJl8c3FIm5qBk",
   crearPago: "https://default510f9de096154a978ffa0354dd6cd6.c7.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/61fb6ce094944cdb8a58bfbae6e49a42/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=qxGaJBSMIyZWFsPXpo7mjIb3n4rccrDHJjbbAeKtHqQ",
-  subirFoto: "https://default510f9de096154a978ffa0354dd6cd6.c7.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/6b53d261cb3a49dbb997e578c88698ef/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=6lG5me7_jEmC2Xzi5PdcowjhbhKeAHFZ-qOVowjQhLw",
 };
+
+/* ─── GitHub CDN ─── */
+const GH_TOKEN = import.meta.env.VITE_GITHUB_TOKEN;
+const GH_REPO = "migueltrigal/portfolio-fotos";
+const GH_BRANCH = "main";
+
+function slugify(name) {
+  return name.replace(/\.[^.]+$/, "").toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/-+/g, "-").slice(0, 60);
+}
+
+async function resizeToBase64(file, maxPx = 1200, maxBytes = 900 * 1024) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        let { width: w, height: h } = img;
+        if (w > maxPx || h > maxPx) { const r = Math.min(maxPx / w, maxPx / h); w = Math.round(w * r); h = Math.round(h * r); }
+        const canvas = document.createElement("canvas");
+        canvas.width = w; canvas.height = h;
+        canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+        let q = 0.85, data = canvas.toDataURL("image/jpeg", q);
+        while (data.length * 0.75 > maxBytes && q > 0.3) { q -= 0.1; data = canvas.toDataURL("image/jpeg", q); }
+        resolve(data.split(",")[1]);
+      };
+      img.onerror = reject; img.src = e.target.result;
+    };
+    reader.onerror = reject; reader.readAsDataURL(file);
+  });
+}
+
+export async function subirFotoGithub(file, folder) {
+  const base64 = await resizeToBase64(file);
+  const fileName = `${Date.now()}-${slugify(file.name)}.jpg`;
+  const path = `${folder}/${fileName}`;
+  const res = await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${path}`, {
+    method: "PUT",
+    headers: { "Authorization": `token ${GH_TOKEN}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ message: `foto: ${fileName}`, content: base64, branch: GH_BRANCH }),
+  });
+  if (!res.ok) { const txt = await res.text(); throw new Error(`GitHub ${res.status}: ${txt}`); }
+  return `https://raw.githubusercontent.com/${GH_REPO}/${GH_BRANCH}/${path}`;
+}
 
 function stripEmpty(obj) {
   const clean = {};
@@ -129,9 +171,6 @@ export async function crearAvance(proyectoId, data) {
   }));
 }
 
-export async function subirFoto({ fileName, fileContent, folder }) {
-  return apiCall(API.subirFoto, "POST", { fileName, fileContent, folder });
-}
 
 export async function crearContrato(proyectoId, data) {
   return apiCall(API.crearContrato, "POST", {
