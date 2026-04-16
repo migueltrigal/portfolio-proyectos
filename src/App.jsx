@@ -332,7 +332,7 @@ export default function App(){
 
   const sel = projects.find(p => p.id === selId) || null;
   const filtered = useMemo(() => filter === "Todos" ? projects : projects.filter(p => p.status === filter), [filter, projects]);
-  const stats = useMemo(() => ({ total: projects.length, risk: projects.filter(p => p.status === "En riesgo").length, budget: projects.reduce((s, p) => s + (p.budget || 0), 0), spent: projects.reduce((s, p) => s + sumPay(p.contracts), 0) }), [projects]);
+  const stats = useMemo(() => ({ enCurso: projects.filter(p => p.status === "En curso").length, pausados: projects.filter(p => p.status === "Pausado").length, completados: projects.filter(p => p.status === "Completado").length, cancelados: projects.filter(p => p.status === "Cancelado").length }), [projects]);
 
   const handleCreateProject = useCallback(async (data) => {
     await crearProyecto(data);
@@ -400,7 +400,7 @@ export default function App(){
           </div>
         </div>
         <div style={{ display: "flex", background: C.white, borderRadius: 8, border: `1px solid ${C.border}`, overflow: "hidden", marginBottom: 16 }}>
-          {[{ label: "Proyectos", value: stats.total }, { label: "En riesgo", value: stats.risk, accent: stats.risk > 0 ? C.orange : null }, { label: "Presupuesto total", value: fmtS(stats.budget) }, { label: "Total pagado", value: fmtS(stats.spent) }].map((s, i) => (
+          {[{ label: "En curso", value: stats.enCurso, accent: "#16a34a" }, { label: "Pausados", value: stats.pausados, accent: "#64748b" }, { label: "Completados", value: stats.completados, accent: C.teal }, { label: "Cancelados", value: stats.cancelados, accent: stats.cancelados > 0 ? "#dc2626" : null }].map((s, i) => (
             <div key={i} style={{ flex: 1, padding: "14px 18px", borderRight: i < 3 ? `1px solid ${C.borderLight}` : "none" }}>
               <p style={{ fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: C.textMuted, margin: "0 0 2px" }}>{s.label}</p>
               <p style={{ fontSize: 20, fontWeight: 700, color: s.accent || C.navy, margin: 0 }}>{s.value}</p>
