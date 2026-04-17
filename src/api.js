@@ -113,7 +113,7 @@ export async function loadAll() {
     contratoId: p.ContratoID,
     date: p.Fecha ? p.Fecha.split("T")[0] : "",
     amount: p.Monto || 0,
-    note: p.Title || p.Nota || "",
+    note: p.Nota || "",
   }));
 
   // Assemble: attach avances and contracts (with payments) to each project
