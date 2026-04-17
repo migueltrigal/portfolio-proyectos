@@ -85,6 +85,7 @@ export async function loadAll() {
     status: p.Estado?.Value || p.Estado || "En curso",
     phase: p.Fase?.Value || p.Fase || "Ideación",
     sede: p.Sede || "",
+    linkBrightIdea: p.LinkBrightIdea || "",
     fotoPrincipal: p.FotoPrincipal || "",
   }));
 
@@ -143,6 +144,7 @@ export async function crearProyecto(data) {
     estado: data.status,
     fase: data.phase,
     sede: data.sede,
+    linkBrightIdea: data.linkBrightIdea,
     fotoPrincipal: data.fotoPrincipal,
   }));
 }
@@ -158,6 +160,7 @@ export async function editarProyecto(data) {
     estado: data.status,
     fase: data.phase,
     sede: data.sede,
+    linkBrightIdea: data.linkBrightIdea,
     fotoPrincipal: data.fotoPrincipal,
   }));
 }
