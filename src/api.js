@@ -108,13 +108,15 @@ export async function loadAll() {
     value: c.Valor || 0,
   }));
 
-  const pagos = (raw.pagos || []).map(p => ({
+  const pagos = (raw.pagos || raw.Pagos || []).map(p => ({
     id: p.ID,
-    contratoId: p.ContratoID,
+    contratoId: Number(p.ContratoID),
     date: p.Fecha ? p.Fecha.split("T")[0] : "",
     amount: p.Monto || 0,
     note: p.Nota || "",
   }));
+
+  console.debug("[loadAll] pagos recibidos:", pagos.length, pagos);
 
   // Assemble: attach avances and contracts (with payments) to each project
   return proyectos.map(proj => ({
@@ -127,7 +129,7 @@ export async function loadAll() {
       .map(c => ({
         ...c,
         payments: pagos
-          .filter(p => p.contratoId === c.id)
+          .filter(p => p.contratoId === Number(c.id))
           .sort((a, b) => b.date.localeCompare(a.date)),
       })),
   }));
