@@ -108,15 +108,17 @@ export async function loadAll() {
     value: c.Valor || 0,
   }));
 
-  const pagos = (raw.pagos || raw.Pagos || []).map(p => ({
+  const rawPagos = raw.pagos || raw.Pagos || [];
+  // Exponer en window para inspección rápida sin DevTools
+  window.__DEBUG_PAGOS__ = rawPagos.slice(0, 3);
+
+  const pagos = rawPagos.map(p => ({
     id: p.ID,
     contratoId: Number(p.ContratoID),
     date: p.Fecha ? p.Fecha.split("T")[0] : "",
     amount: p.Monto || 0,
-    note: p.Nota || "",
+    note: p.Nota || p.Title || "",
   }));
-
-  console.debug("[loadAll] pagos recibidos:", pagos.length, pagos);
 
   // Assemble: attach avances and contracts (with payments) to each project
   return proyectos.map(proj => ({

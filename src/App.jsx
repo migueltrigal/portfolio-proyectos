@@ -99,6 +99,25 @@ function ProjectCard({project:p,onClick}){
   );
 }
 
+/* ─── Debug temporal de pagos ─── */
+function DebugPagos() {
+  const [data, setData] = useState(null);
+  useEffect(() => {
+    const t = setInterval(() => {
+      if (window.__DEBUG_PAGOS__) { setData(window.__DEBUG_PAGOS__); clearInterval(t); }
+    }, 500);
+    return () => clearInterval(t);
+  }, []);
+  if (!data) return null;
+  return (
+    <div style={{ marginTop:24,padding:16,background:"#fff3cd",border:"1px solid #ffc107",borderRadius:8,fontSize:11,fontFamily:"monospace",wordBreak:"break-all" }}>
+      <strong>DEBUG pagos (eliminar después):</strong><br/>
+      Cantidad: {data.length}<br/>
+      {data[0] ? <>Campos primer pago: {Object.keys(data[0]).join(", ")}<br/>Valores: {JSON.stringify(data[0])}</> : "Sin pagos en respuesta"}
+    </div>
+  );
+}
+
 /* ─── App ─── */
 export default function App(){
   const[projects,setProjects]=useState([]);
@@ -207,6 +226,8 @@ export default function App(){
       <div style={{ display:"flex",height:4,borderRadius:2,marginTop:32,overflow:"hidden" }}>
         <div style={{ flex:3,background:C.navy }}/><div style={{ flex:1,background:C.orange }}/>
       </div>
+      {/* DEBUG TEMPORAL — eliminar después */}
+      <DebugPagos />
     </div>
   );
 
