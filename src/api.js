@@ -108,11 +108,7 @@ export async function loadAll() {
     value: c.Valor || 0,
   }));
 
-  const rawPagos = raw.pagos || raw.Pagos || [];
-  // Exponer en window para inspección rápida sin DevTools
-  window.__DEBUG_PAGOS__ = rawPagos.slice(0, 3);
-
-  const pagos = rawPagos.map(p => ({
+  const pagos = (raw.pagos || []).map(p => ({
     id: p.ID,
     contratoId: Number(p.ContratoID),
     date: p.Fecha ? p.Fecha.split("T")[0] : "",
