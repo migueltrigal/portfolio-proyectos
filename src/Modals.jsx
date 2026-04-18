@@ -3,6 +3,36 @@ import { C, font, PHASES, STATUSES, fmt, inp, lbl, btnP, btnS } from "./tokens.j
 import { useAuth } from "./context.js";
 import { subirFotoGithub } from "./api.js";
 
+const SEDES = ["Aguas Claras", "Olas", "Caribe", "Manantiales"];
+
+function SedeCheckboxes({ id, selected, onChange }) {
+  const toggle = sede => {
+    const next = selected.includes(sede)
+      ? selected.filter(s => s !== sede)
+      : [...selected, sede];
+    onChange(next);
+  };
+  return (
+    <div>
+      <p style={{ ...lbl, margin: 0, marginBottom: 8 }}>Sede</p>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "8px 20px" }}>
+        {SEDES.map(sede => (
+          <label key={sede} htmlFor={`${id}-${sede}`} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 500, color: C.textPrimary, cursor: "pointer" }}>
+            <input
+              id={`${id}-${sede}`}
+              type="checkbox"
+              checked={selected.includes(sede)}
+              onChange={() => toggle(sede)}
+              style={{ width: 15, height: 15, accentColor: C.teal, cursor: "pointer" }}
+            />
+            {sede}
+          </label>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function Modal({title,onClose,children}){
   const{isMobile}=useAuth();
   const ph=isMobile?"14px 16px":"18px 24px",pb=isMobile?"16px 16px":"20px 24px";
@@ -41,12 +71,12 @@ function F({id, label, children}) {
 }
 
 function CreateProjectForm({onSave,onCancel}){
-  const[f,sF]=useState({name:"",description:"",responsible:"",sede:"",linkBrightIdea:"",startDate:"",estimatedEnd:"",budget:"",status:"En curso",phase:"Ideación",fotoPrincipal:""});
+  const[f,sF]=useState({name:"",description:"",responsible:"",sede:[],linkBrightIdea:"",startDate:"",estimatedEnd:"",budget:"",status:"En curso",phase:"Ideación",fotoPrincipal:""});
   const[saving,setSaving]=useState(false);
   const s=(k,v)=>sF(p=>({...p,[k]:v}));
   const ok=f.name&&f.responsible&&f.startDate&&!saving;
   const{isMobile}=useAuth();const g1=isMobile?"1fr":"1fr 1fr";
-  const handleSave=async()=>{setSaving(true);try{await onSave({...f,budget:f.budget?Number(f.budget):null});}catch(e){alert("Error al crear: "+e.message);setSaving(false);}};
+  const handleSave=async()=>{setSaving(true);try{await onSave({...f,sede:f.sede.join(", "),budget:f.budget?Number(f.budget):null});}catch(e){alert("Error al crear: "+e.message);setSaving(false);}};
   return(
     <Modal title="Nuevo proyecto" onClose={onCancel}>
       <div style={{display:"flex",flexDirection:"column",gap:16}}>
@@ -54,7 +84,7 @@ function CreateProjectForm({onSave,onCancel}){
         <F id="cp-desc" label="Descripción"><textarea id="cp-desc" style={{...inp,minHeight:80,resize:"vertical"}} value={f.description} onChange={e=>s("description",e.target.value)}/></F>
         <div style={{display:"grid",gridTemplateColumns:g1,gap:12}}>
           <F id="cp-responsible" label="Responsable *"><input id="cp-responsible" style={inp} value={f.responsible} onChange={e=>s("responsible",e.target.value)}/></F>
-          <F id="cp-sede" label="Sede"><input id="cp-sede" style={inp} value={f.sede} onChange={e=>s("sede",e.target.value)} placeholder="Ej: Aguas Claras"/></F>
+          <SedeCheckboxes id="cp-sede" selected={f.sede} onChange={v=>s("sede",v)}/>
         </div>
         <F id="cp-link" label="Link BrightIdea"><input id="cp-link" style={inp} type="url" value={f.linkBrightIdea} onChange={e=>s("linkBrightIdea",e.target.value)} placeholder="https://..."/></F>
         <div style={{display:"grid",gridTemplateColumns:g1,gap:12}}>
@@ -80,11 +110,12 @@ function CreateProjectForm({onSave,onCancel}){
 }
 
 function EditProjectForm({project:p,onSave,onCancel}){
-  const[f,sF]=useState({name:p.name,description:p.description,responsible:p.responsible,sede:p.sede||"",linkBrightIdea:p.linkBrightIdea||"",estimatedEnd:p.estimatedEnd,budget:p.budget!=null?String(p.budget):"",status:p.status,phase:p.phase,fotoPrincipal:p.fotoPrincipal||""});
+  const sedeInicial = p.sede ? p.sede.split(", ").filter(Boolean) : [];
+  const[f,sF]=useState({name:p.name,description:p.description,responsible:p.responsible,sede:sedeInicial,linkBrightIdea:p.linkBrightIdea||"",estimatedEnd:p.estimatedEnd,budget:p.budget!=null?String(p.budget):"",status:p.status,phase:p.phase,fotoPrincipal:p.fotoPrincipal||""});
   const[saving,setSaving]=useState(false);
   const s=(k,v)=>sF(x=>({...x,[k]:v}));
   const{isMobile}=useAuth();const g1=isMobile?"1fr":"1fr 1fr";
-  const handleSave=async()=>{setSaving(true);try{await onSave({...p,...f,budget:f.budget?Number(f.budget):null});}catch(e){alert("Error: "+e.message);setSaving(false);}};
+  const handleSave=async()=>{setSaving(true);try{await onSave({...p,...f,sede:f.sede.join(", "),budget:f.budget?Number(f.budget):null});}catch(e){alert("Error: "+e.message);setSaving(false);}};
   return(
     <Modal title="Editar proyecto" onClose={onCancel}>
       <div style={{display:"flex",flexDirection:"column",gap:16}}>
@@ -92,7 +123,7 @@ function EditProjectForm({project:p,onSave,onCancel}){
         <F id="ep-desc" label="Descripción"><textarea id="ep-desc" style={{...inp,minHeight:80,resize:"vertical"}} value={f.description} onChange={e=>s("description",e.target.value)}/></F>
         <div style={{display:"grid",gridTemplateColumns:g1,gap:12}}>
           <F id="ep-responsible" label="Responsable"><input id="ep-responsible" style={inp} value={f.responsible} onChange={e=>s("responsible",e.target.value)}/></F>
-          <F id="ep-sede" label="Sede"><input id="ep-sede" style={inp} value={f.sede} onChange={e=>s("sede",e.target.value)} placeholder="Ej: Aguas Claras"/></F>
+          <SedeCheckboxes id="ep-sede" selected={f.sede} onChange={v=>s("sede",v)}/>
         </div>
         <F id="ep-link" label="Link BrightIdea"><input id="ep-link" style={inp} type="url" value={f.linkBrightIdea} onChange={e=>s("linkBrightIdea",e.target.value)} placeholder="https://..."/></F>
         <div style={{display:"grid",gridTemplateColumns:g1,gap:12}}>
