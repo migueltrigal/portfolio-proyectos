@@ -7,10 +7,9 @@ export const font = "'Aptos', 'Segoe UI', -apple-system, sans-serif";
 
 export const PHASES = ["Ideación","Iniciación","Prototipado","Piloto","Implementación","Entrega","Seguimiento"];
 export const PHASE_INDEX = Object.fromEntries(PHASES.map((p, i) => [p, i]));
-export const STATUSES = ["En curso","En riesgo","Pausado","Completado","Cancelado"];
+export const STATUSES = ["En curso","Pausado","Completado","Cancelado"];
 export const STATUS_CONFIG = {
   "En curso":    { color: "#16a34a", bg: "#f0fdf4", border: "#bbf7d0", icon: "●" },
-  "En riesgo":   { color: C.orange,  bg: "#FFF5EE", border: "#FDDCBE", icon: "▲" },
   "Pausado":     { color: "#64748b", bg: "#f1f5f9", border: "#cbd5e1", icon: "❚❚" },
   "Completado":  { color: C.teal,    bg: "#EEF7F8", border: "#B8DDE2", icon: "✓" },
   "Cancelado":   { color: "#dc2626", bg: "#fef2f2", border: "#fecaca", icon: "✕" },
