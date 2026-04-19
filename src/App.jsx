@@ -174,48 +174,56 @@ export default function App(){
       />
     </Suspense>
   ) : (
-    <div style={{ maxWidth:1100,margin:"0 auto" }}>
-      <div style={{ marginBottom:24 }}>
-        <div style={{ display:"flex",flexDirection:isMobile?"column":"row",justifyContent:"space-between",alignItems:"flex-start",gap:12,marginBottom:20 }}>
-          <div style={{ display:"flex",alignItems:"center",gap:12 }}>
-            <img src={LOGO_SRC} alt="I+D" style={{ height:isMobile?36:48,flexShrink:0 }} />
-            <div>
-              <p style={{ fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.12em",color:C.textMuted,margin:"0 0 2px" }}>Innovación y Transformación Digital</p>
-              <h1 style={{ fontSize:isMobile?18:22,fontWeight:700,color:C.navy,margin:0,letterSpacing:"-0.01em" }}>Portafolio de Proyectos</h1>
+    <div>
+      {/* Franja superior clara */}
+      <div style={{ background:C.bg,padding:isMobile?"12px 10px 16px":"18px 16px 20px",borderBottom:`3px solid ${C.border}` }}>
+        <div style={{ maxWidth:1100,margin:"0 auto" }}>
+          <div style={{ display:"flex",flexDirection:isMobile?"column":"row",justifyContent:"space-between",alignItems:"flex-start",gap:12,marginBottom:20 }}>
+            <div style={{ display:"flex",alignItems:"center",gap:12 }}>
+              <img src={LOGO_SRC} alt="I+D" style={{ height:isMobile?36:48,flexShrink:0 }} />
+              <div>
+                <p style={{ fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.12em",color:C.textMuted,margin:"0 0 2px" }}>Innovación y Transformación Digital</p>
+                <h1 style={{ fontSize:isMobile?18:22,fontWeight:700,color:C.navy,margin:0,letterSpacing:"-0.01em" }}>Portafolio de Proyectos</h1>
+              </div>
+            </div>
+            <div style={{ display:"flex",alignItems:"center",gap:10 }}>
+              <AuthBar isEditor={isEditor} onLogin={()=>setIsEditor(true)} onLogout={()=>setIsEditor(false)} />
+              {isEditor&&<button onClick={()=>setModal("create")} style={{...btnP,fontSize:12,padding:isMobile?"8px 14px":"10px 24px"}}>+ Nuevo proyecto</button>}
             </div>
           </div>
-          <div style={{ display:"flex",alignItems:"center",gap:10 }}>
-            <AuthBar isEditor={isEditor} onLogin={()=>setIsEditor(true)} onLogout={()=>setIsEditor(false)} />
-            {isEditor&&<button onClick={()=>setModal("create")} style={{...btnP,fontSize:12,padding:isMobile?"8px 14px":"10px 24px"}}>+ Nuevo proyecto</button>}
+          <div style={{ display:isMobile?"grid":"flex",gridTemplateColumns:"1fr 1fr",background:C.white,borderRadius:8,border:`1px solid ${C.border}`,overflow:"hidden",marginBottom:16 }}>
+            {[{label:"En curso",value:stats.enCurso,accent:"#16a34a"},{label:"Pausados",value:stats.pausados,accent:"#64748b"},{label:"Completados",value:stats.completados,accent:C.teal},{label:"Cancelados",value:stats.cancelados,accent:stats.cancelados>0?"#dc2626":null}].map((s,i)=>(
+              <div key={i} style={{ flex:1,padding:isMobile?"10px 12px":"14px 18px",borderRight:isMobile?(i%2===0?`1px solid ${C.borderLight}`:"none"):(i<3?`1px solid ${C.borderLight}`:"none"),borderBottom:isMobile&&i<2?`1px solid ${C.borderLight}`:"none" }}>
+                <p style={{ fontSize:9,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",color:C.textMuted,margin:"0 0 2px" }}>{s.label}</p>
+                <p style={{ fontSize:isMobile?17:20,fontWeight:700,color:s.accent||C.navy,margin:0 }}>{s.value}</p>
+              </div>
+            ))}
+          </div>
+          <div style={{ display:"flex",gap:5,flexWrap:isMobile?"nowrap":"wrap",overflowX:isMobile?"auto":"visible",paddingBottom:isMobile?4:0 }}>
+            {["Todos",...STATUSES].map(f=>{ const a=filter===f; const cfg=f!=="Todos"?STATUS_CONFIG[f]:null; return(
+              <button key={f} onClick={()=>setFilter(f)} style={{ padding:isMobile?"8px 12px":"6px 14px",minHeight:36,borderRadius:6,border:`1px solid ${a?C.navy:C.border}`,background:a?C.navy:C.white,color:a?C.white:C.textSecondary,fontWeight:700,fontSize:11,cursor:"pointer",fontFamily:font,flexShrink:0,whiteSpace:"nowrap" }}>{cfg?cfg.icon+" ":""}{f}</button>
+            ); })}
           </div>
         </div>
-        <div style={{ display:isMobile?"grid":"flex",gridTemplateColumns:"1fr 1fr",background:C.white,borderRadius:8,border:`1px solid ${C.border}`,overflow:"hidden",marginBottom:16 }}>
-          {[{label:"En curso",value:stats.enCurso,accent:"#16a34a"},{label:"Pausados",value:stats.pausados,accent:"#64748b"},{label:"Completados",value:stats.completados,accent:C.teal},{label:"Cancelados",value:stats.cancelados,accent:stats.cancelados>0?"#dc2626":null}].map((s,i)=>(
-            <div key={i} style={{ flex:1,padding:isMobile?"10px 12px":"14px 18px",borderRight:isMobile?(i%2===0?`1px solid ${C.borderLight}`:"none"):(i<3?`1px solid ${C.borderLight}`:"none"),borderBottom:isMobile&&i<2?`1px solid ${C.borderLight}`:"none" }}>
-              <p style={{ fontSize:9,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",color:C.textMuted,margin:"0 0 2px" }}>{s.label}</p>
-              <p style={{ fontSize:isMobile?17:20,fontWeight:700,color:s.accent||C.navy,margin:0 }}>{s.value}</p>
-            </div>
-          ))}
-        </div>
-        <div style={{ display:"flex",gap:5,flexWrap:isMobile?"nowrap":"wrap",overflowX:isMobile?"auto":"visible",paddingBottom:isMobile?4:0 }}>
-          {["Todos",...STATUSES].map(f=>{ const a=filter===f; const cfg=f!=="Todos"?STATUS_CONFIG[f]:null; return(
-            <button key={f} onClick={()=>setFilter(f)} style={{ padding:isMobile?"8px 12px":"6px 14px",minHeight:36,borderRadius:6,border:`1px solid ${a?C.navy:C.border}`,background:a?C.navy:C.white,color:a?C.white:C.textSecondary,fontWeight:700,fontSize:11,cursor:"pointer",fontFamily:font,flexShrink:0,whiteSpace:"nowrap" }}>{cfg?cfg.icon+" ":""}{f}</button>
-          ); })}
-        </div>
       </div>
-      <div style={{ display:"grid",gridTemplateColumns:isMobile?"1fr":"repeat(auto-fill, minmax(300px, 1fr))",gap:14 }}>
-        {filtered.map(p=><ProjectCard key={p.id} project={p} onClick={()=>setSelId(p.id)}/>)}
-      </div>
-      {filtered.length===0&&<div style={{ textAlign:"center",padding:60,color:C.textMuted,fontSize:13 }}>No hay proyectos{filter!=="Todos"?` con estado "${filter}"`:"."}</div>}
-      <div style={{ display:"flex",height:4,borderRadius:2,marginTop:32,overflow:"hidden" }}>
-        <div style={{ flex:3,background:C.navy }}/><div style={{ flex:1,background:C.orange }}/>
+      {/* Zona oscura con tarjetas */}
+      <div style={{ padding:isMobile?"16px 10px":"24px 16px" }}>
+        <div style={{ maxWidth:1100,margin:"0 auto" }}>
+          <div style={{ display:"grid",gridTemplateColumns:isMobile?"1fr":"repeat(auto-fill, minmax(300px, 1fr))",gap:14 }}>
+            {filtered.map(p=><ProjectCard key={p.id} project={p} onClick={()=>setSelId(p.id)}/>)}
+          </div>
+          {filtered.length===0&&<div style={{ textAlign:"center",padding:60,color:"#8eaac8",fontSize:13 }}>No hay proyectos{filter!=="Todos"?` con estado "${filter}"`:"."}</div>}
+          <div style={{ display:"flex",height:4,borderRadius:2,marginTop:32,overflow:"hidden" }}>
+            <div style={{ flex:3,background:C.navy }}/><div style={{ flex:1,background:C.orange }}/>
+          </div>
+        </div>
       </div>
     </div>
   );
 
   return (
     <AuthCtx.Provider value={{ isEditor, isMobile }}>
-      <div style={{ minHeight:"100vh",background:C.bg,padding:isMobile?"12px 10px":"22px 16px",fontFamily:font }}>
+      <div style={{ minHeight:"100vh",background:"#1F3361",fontFamily:font }}>
         {content}
         {modal && (
           <Suspense fallback={null}>
