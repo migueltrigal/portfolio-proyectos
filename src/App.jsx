@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback, useEffect, lazy, Suspense } from "react";
 import { loadAll, crearProyecto, editarProyecto, crearAvance, crearContrato, crearPago } from "./api.js";
-import { C, font, PHASES, PHASE_INDEX, STATUSES, STATUS_CONFIG, fmtD, btnP, imgUrl, formatLocations } from "./tokens.js";
+import { C, font, PHASES, PHASE_INDEX, STATUSES, STATUS_CONFIG, INNOVATION_TYPES, fmtD, btnP, imgUrl, formatLocations } from "./tokens.js";
 
 import { AuthCtx, EDITOR_KEY, useAuth } from "./context.js";
 
@@ -71,34 +71,62 @@ function PhaseBar({phase}){
 
 /* ─── Project Card ─── */
 function ProjectCard({project:p,onClick}){
-  const sc=STATUS_CONFIG[p.status]||STATUS_CONFIG["En curso"];
-  const lastAdv=p.advances[0];
+  const it = INNOVATION_TYPES[p.innovationType] || INNOVATION_TYPES["Otro"];
+  const lastAdv = p.advances[0];
+  const phaseIdx = PHASE_INDEX[p.phase] ?? 0;
+  const pct = ((phaseIdx + 1) / PHASES.length * 100).toFixed(1);
+  const loc = formatLocations(p.sede);
+
+  const daysSince = lastAdv
+    ? Math.floor((Date.now() - new Date(lastAdv.date + "T12:00:00")) / 86400000)
+    : null;
+  const stale = daysSince !== null && daysSince > 30;
+
   return(
-    <div onClick={onClick} style={{background:C.cardBg,borderRadius:10,cursor:"pointer",border:`1px solid ${C.border}`,overflow:"hidden",transition:"all 0.3s cubic-bezier(.4,0,.2,1)",display:"flex",flexDirection:"column"}}
-      onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-3px)";e.currentTarget.style.boxShadow=`0 12px 36px ${C.navy}18`;}}
-      onMouseLeave={e=>{e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="";}}>
-      <div style={{height:4,background:sc.color}}/>
-      <div style={{padding:"16px 18px 14px"}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-          <span style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.06em",color:sc.color,background:sc.bg,border:`1px solid ${sc.border}`,padding:"3px 9px",borderRadius:4}}>{sc.icon} {p.status}</span>
-          <span style={{fontSize:10,color:C.textMuted,fontWeight:600}}>{lastAdv?fmtD(lastAdv.date):"Sin avances"}</span>
-        </div>
-        <div style={{display:"flex",alignItems:"center",gap:10}}>
-          {p.fotoPrincipal
-            ? <img src={imgUrl(p.fotoPrincipal,100)} alt="foto" style={{width:44,height:44,borderRadius:6,objectFit:"cover",flexShrink:0,border:`1px solid ${C.border}`}}/>
-            : <div style={{width:44,height:44,borderRadius:6,background:"#EEF7F8",border:`1px solid ${C.borderLight}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>🌱</div>
-          }
-          <div>
-            <h3 style={{fontSize:14,fontWeight:700,color:C.navy,margin:"0 0 3px",lineHeight:1.3}}>{p.name}</h3>
-            <p style={{fontSize:11,color:C.textSecondary,margin:"0 0 2px",fontWeight:600}}>{p.responsible}</p>
-            {formatLocations(p.sede)&&<p style={{fontSize:10,color:C.textMuted,margin:0,fontWeight:600}}>📍 {formatLocations(p.sede)}</p>}
-          </div>
-        </div>
+    <div onClick={onClick} style={{background:C.white,borderRadius:10,cursor:"pointer",border:"0.5px solid #e2e8f0",overflow:"hidden",transition:"box-shadow 0.2s",display:"flex",minHeight:128}}
+      onMouseEnter={e=>e.currentTarget.style.boxShadow="0 8px 24px rgba(15,23,42,0.12)"}
+      onMouseLeave={e=>e.currentTarget.style.boxShadow=""}>
+
+      {/* Thumbnail */}
+      <div style={{width:110,flexShrink:0,background:"#f1f5f9",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden"}}>
+        {p.fotoPrincipal
+          ? <img src={imgUrl(p.fotoPrincipal,220)} alt="foto" style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}}/>
+          : <span style={{fontSize:32}}>🌱</span>
+        }
       </div>
-      <div style={{height:1,background:C.borderLight}}/>
-      <div style={{padding:"12px 18px"}}><PhaseBar phase={p.phase}/></div>
-      <div style={{height:1,background:C.borderLight}}/>
-      {lastAdv&&<div style={{padding:"12px 18px 16px"}}><p style={{fontSize:9,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",color:C.textMuted,margin:"0 0 3px"}}>Próximo paso</p><p style={{fontSize:11,color:C.textPrimary,margin:0,lineHeight:1.5,fontWeight:500,display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{lastAdv.nextStep}</p></div>}
+
+      {/* Contenido */}
+      <div style={{flex:1,padding:"12px 14px",display:"flex",flexDirection:"column",justifyContent:"space-between",minWidth:0}}>
+
+        {/* Bloque superior: tipo + actividad */}
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:8,marginBottom:6}}>
+          <span style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",color:it.accent,whiteSpace:"nowrap"}}>{it.label}</span>
+          {daysSince === null
+            ? <span style={{fontSize:10,color:"#94a3b8",whiteSpace:"nowrap"}}>Sin avances</span>
+            : stale
+              ? <span style={{fontSize:10,fontWeight:500,background:"#fef3c7",color:"#78350f",padding:"2px 7px",borderRadius:9999,whiteSpace:"nowrap"}}>Sin update {daysSince}d</span>
+              : <span style={{fontSize:10,color:"#94a3b8",whiteSpace:"nowrap"}}>Act. hace {daysSince}d</span>
+          }
+        </div>
+
+        {/* Bloque central: título + responsable */}
+        <div style={{marginBottom:8,minWidth:0}}>
+          <h3 style={{fontSize:15,fontWeight:500,color:"#0f172a",margin:"0 0 3px",lineHeight:1.25,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</h3>
+          <p style={{fontSize:11,color:"#64748b",margin:0}}>
+            {p.responsible}{loc ? ` · ${loc}` : ""}
+          </p>
+        </div>
+
+        {/* Bloque inferior: fase + barra + contador */}
+        <div style={{display:"flex",alignItems:"center",gap:10}}>
+          <span style={{fontSize:10,fontWeight:500,color:"#0f172a",whiteSpace:"nowrap"}}>{p.phase}</span>
+          <div style={{flex:1,height:3,background:"#f1f5f9",borderRadius:9999,overflow:"hidden"}}>
+            <div style={{width:`${pct}%`,height:"100%",background:it.barFill,borderRadius:9999}}/>
+          </div>
+          <span style={{fontSize:10,fontWeight:500,color:"#64748b",fontVariantNumeric:"tabular-nums",whiteSpace:"nowrap"}}>{phaseIdx+1}/7</span>
+        </div>
+
+      </div>
     </div>
   );
 }
