@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback, useEffect, lazy, Suspense } from "react";
 import { loadAll, crearProyecto, editarProyecto, crearAvance, crearContrato, crearPago } from "./api.js";
-import { C, font, PHASES, PHASE_INDEX, STATUSES, STATUS_CONFIG, fmtS, fmtD, sumPay, btnP } from "./tokens.js";
+import { C, font, PHASES, PHASE_INDEX, STATUSES, STATUS_CONFIG, fmtD, btnP } from "./tokens.js";
 import { AuthCtx, EDITOR_KEY, useAuth } from "./context.js";
 
 const LOGO_SRC = import.meta.env.BASE_URL + "logo.png";
@@ -71,7 +71,7 @@ function PhaseBar({phase}){
 /* ─── Project Card ─── */
 function ProjectCard({project:p,onClick}){
   const sc=STATUS_CONFIG[p.status]||STATUS_CONFIG["En curso"];
-  const paid=sumPay(p.contracts);const lastAdv=p.advances[0];const hasBudget=p.budget!=null;const budgetPct=hasBudget?Math.min((paid/p.budget)*100,100):0;
+  const lastAdv=p.advances[0];
   return(
     <div onClick={onClick} style={{background:C.cardBg,borderRadius:10,cursor:"pointer",border:`1px solid ${C.border}`,overflow:"hidden",transition:"all 0.3s cubic-bezier(.4,0,.2,1)",display:"flex",flexDirection:"column"}}
       onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-3px)";e.currentTarget.style.boxShadow=`0 12px 36px ${C.navy}18`;}}
@@ -88,11 +88,6 @@ function ProjectCard({project:p,onClick}){
       </div>
       <div style={{height:1,background:C.borderLight}}/>
       <div style={{padding:"12px 18px"}}><PhaseBar phase={p.phase}/></div>
-      <div style={{height:1,background:C.borderLight}}/>
-      <div style={{padding:"12px 18px"}}>
-        <div style={{display:"flex",justifyContent:"space-between",fontSize:10,fontWeight:700,color:C.textSecondary,marginBottom:5}}><span>{fmtS(paid)} pagado</span><span>{hasBudget?`de ${fmtS(p.budget)}`:`${p.contracts.length} contratos`}</span></div>
-        {hasBudget&&<div style={{height:4,background:C.borderLight,borderRadius:3}}><div style={{height:"100%",borderRadius:3,width:`${budgetPct}%`,background:budgetPct>90?"#dc2626":budgetPct>70?C.orange:C.teal}}/></div>}
-      </div>
       <div style={{height:1,background:C.borderLight}}/>
       {lastAdv&&<div style={{padding:"12px 18px 16px"}}><p style={{fontSize:9,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",color:C.textMuted,margin:"0 0 3px"}}>Próximo paso</p><p style={{fontSize:11,color:C.textPrimary,margin:0,lineHeight:1.5,fontWeight:500,display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{lastAdv.nextStep}</p></div>}
     </div>
