@@ -87,6 +87,7 @@ export async function loadAll() {
     sede: p.Sede || "",
     linkBrightIdea: p.LinkBrightIdea || "",
     fotoPrincipal: p.FotoPrincipal || "",
+    innovationType: p.TipoInnovacion?.Value || p.TipoInnovacion || "Otro",
   }));
 
   const avances = (raw.avances || []).map(a => ({
@@ -146,6 +147,7 @@ export async function crearProyecto(data) {
     sede: data.sede,
     linkBrightIdea: data.linkBrightIdea,
     fotoPrincipal: data.fotoPrincipal,
+    tipoInnovacion: data.innovationType,
   }));
 }
 
@@ -162,6 +164,7 @@ export async function editarProyecto(data) {
     sede: data.sede,
     linkBrightIdea: data.linkBrightIdea,
     fotoPrincipal: data.fotoPrincipal,
+    tipoInnovacion: data.innovationType,
   }));
 }
 

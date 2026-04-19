@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { C, font, PHASES, STATUSES, fmt, inp, lbl, btnP, btnS } from "./tokens.js";
+import { C, font, PHASES, STATUSES, INNOVATION_TYPES, fmt, inp, lbl, btnP, btnS } from "./tokens.js";
 import { useAuth } from "./context.js";
 import { subirFotoGithub } from "./api.js";
 
@@ -71,7 +71,7 @@ function F({id, label, children}) {
 }
 
 function CreateProjectForm({onSave,onCancel}){
-  const[f,sF]=useState({name:"",description:"",responsible:"",sede:[],linkBrightIdea:"",startDate:"",estimatedEnd:"",budget:"",status:"En curso",phase:"Ideación",fotoPrincipal:""});
+  const[f,sF]=useState({name:"",description:"",responsible:"",sede:[],linkBrightIdea:"",startDate:"",estimatedEnd:"",budget:"",status:"En curso",phase:"Ideación",innovationType:"Otro",fotoPrincipal:""});
   const[saving,setSaving]=useState(false);
   const s=(k,v)=>sF(p=>({...p,[k]:v}));
   const ok=f.name&&f.responsible&&f.startDate&&!saving;
@@ -99,6 +99,7 @@ function CreateProjectForm({onSave,onCancel}){
           <F id="cp-status" label="Estado"><select id="cp-status" style={inp} value={f.status} onChange={e=>s("status",e.target.value)}>{STATUSES.map(x=><option key={x}>{x}</option>)}</select></F>
           <F id="cp-phase" label="Fase"><select id="cp-phase" style={inp} value={f.phase} onChange={e=>s("phase",e.target.value)}>{PHASES.map(x=><option key={x}>{x}</option>)}</select></F>
         </div>
+        <F id="cp-itype" label="Tipo de innovación"><select id="cp-itype" style={inp} value={f.innovationType} onChange={e=>s("innovationType",e.target.value)}>{Object.keys(INNOVATION_TYPES).map(x=><option key={x}>{x}</option>)}</select></F>
         <PhotoField id="cp-foto" value={f.fotoPrincipal} onChange={v=>s("fotoPrincipal",v)} folder="proyectos" label="Foto principal"/>
         <div style={{display:"flex",gap:10,justifyContent:"flex-end",marginTop:8}}>
           <button style={btnS} onClick={onCancel}>Cancelar</button>
@@ -111,7 +112,7 @@ function CreateProjectForm({onSave,onCancel}){
 
 function EditProjectForm({project:p,onSave,onCancel}){
   const sedeInicial = p.sede ? p.sede.split(", ").filter(Boolean) : [];
-  const[f,sF]=useState({name:p.name,description:p.description,responsible:p.responsible,sede:sedeInicial,linkBrightIdea:p.linkBrightIdea||"",estimatedEnd:p.estimatedEnd,budget:p.budget!=null?String(p.budget):"",status:p.status,phase:p.phase,fotoPrincipal:p.fotoPrincipal||""});
+  const[f,sF]=useState({name:p.name,description:p.description,responsible:p.responsible,sede:sedeInicial,linkBrightIdea:p.linkBrightIdea||"",estimatedEnd:p.estimatedEnd,budget:p.budget!=null?String(p.budget):"",status:p.status,phase:p.phase,innovationType:p.innovationType||"Otro",fotoPrincipal:p.fotoPrincipal||""});
   const[saving,setSaving]=useState(false);
   const s=(k,v)=>sF(x=>({...x,[k]:v}));
   const{isMobile}=useAuth();const g1=isMobile?"1fr":"1fr 1fr";
@@ -134,6 +135,7 @@ function EditProjectForm({project:p,onSave,onCancel}){
           <F id="ep-status" label="Estado"><select id="ep-status" style={inp} value={f.status} onChange={e=>s("status",e.target.value)}>{STATUSES.map(x=><option key={x}>{x}</option>)}</select></F>
           <F id="ep-phase" label="Fase"><select id="ep-phase" style={inp} value={f.phase} onChange={e=>s("phase",e.target.value)}>{PHASES.map(x=><option key={x}>{x}</option>)}</select></F>
         </div>
+        <F id="ep-itype" label="Tipo de innovación"><select id="ep-itype" style={inp} value={f.innovationType} onChange={e=>s("innovationType",e.target.value)}>{Object.keys(INNOVATION_TYPES).map(x=><option key={x}>{x}</option>)}</select></F>
         <PhotoField id="ep-foto" value={f.fotoPrincipal} onChange={v=>s("fotoPrincipal",v)} folder="proyectos" label="Foto principal"/>
         <div style={{display:"flex",gap:10,justifyContent:"flex-end",marginTop:8}}>
           <button style={btnS} onClick={onCancel}>Cancelar</button>

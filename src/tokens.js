@@ -32,6 +32,15 @@ export const lbl  = { fontSize:10,fontWeight:700,textTransform:"uppercase",lette
 export const btnP = { padding:"10px 24px",borderRadius:6,border:"none",cursor:"pointer",background:C.navy,color:C.white,fontWeight:700,fontSize:13,fontFamily:font };
 export const btnS = { padding:"10px 24px",borderRadius:6,border:`1px solid ${C.border}`,background:C.white,color:C.textSecondary,fontWeight:700,fontSize:13,fontFamily:font,cursor:"pointer" };
 
+export const INNOVATION_TYPES = {
+  "IA / visión":     { label: "IA / VISIÓN",      accent: "#7c3aed", barFill: "#7c3aed" },
+  "Sensórica / IoT": { label: "SENSÓRICA / IOT",  accent: "#0891b2", barFill: "#0891b2" },
+  "Mecanización":    { label: "MECANIZACIÓN",     accent: "#ea580c", barFill: "#ea580c" },
+  "Software":        { label: "SOFTWARE",         accent: "#059669", barFill: "#059669" },
+  "Sanidad vegetal": { label: "SANIDAD VEGETAL",  accent: "#db2777", barFill: "#db2777" },
+  "Otro":            { label: "OTRO",             accent: "#64748b", barFill: "#64748b" },
+};
+
 export function formatLocations(sede) {
   if (!sede) return null;
   const parts = sede.split(",").map(s => s.trim()).filter(Boolean);
