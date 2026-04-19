@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback, useEffect, lazy, Suspense } from "react";
 import { loadAll, crearProyecto, editarProyecto, crearAvance, crearContrato, crearPago } from "./api.js";
-import { C, font, PHASES, PHASE_INDEX, STATUSES, STATUS_CONFIG, fmtD, btnP } from "./tokens.js";
+import { C, font, PHASES, PHASE_INDEX, STATUSES, STATUS_CONFIG, fmtD, btnP, imgUrl } from "./tokens.js";
 import { AuthCtx, EDITOR_KEY, useAuth } from "./context.js";
 
 const LOGO_SRC = import.meta.env.BASE_URL + "logo.png";
@@ -82,9 +82,17 @@ function ProjectCard({project:p,onClick}){
           <span style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.06em",color:sc.color,background:sc.bg,border:`1px solid ${sc.border}`,padding:"3px 9px",borderRadius:4}}>{sc.icon} {p.status}</span>
           <span style={{fontSize:10,color:C.textMuted,fontWeight:600}}>{lastAdv?fmtD(lastAdv.date):"Sin avances"}</span>
         </div>
-        <h3 style={{fontSize:14,fontWeight:700,color:C.navy,margin:"0 0 3px",lineHeight:1.3}}>{p.name}</h3>
-        <p style={{fontSize:11,color:C.textSecondary,margin:"0 0 2px",fontWeight:600}}>{p.responsible}</p>
-        {p.sede&&<p style={{fontSize:10,color:C.textMuted,margin:0,fontWeight:600}}>📍 {p.sede}</p>}
+        <div style={{display:"flex",alignItems:"center",gap:10}}>
+          {p.fotoPrincipal
+            ? <img src={imgUrl(p.fotoPrincipal,100)} alt="foto" style={{width:44,height:44,borderRadius:6,objectFit:"cover",flexShrink:0,border:`1px solid ${C.border}`}}/>
+            : <div style={{width:44,height:44,borderRadius:6,background:"#EEF7F8",border:`1px solid ${C.borderLight}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>🌱</div>
+          }
+          <div>
+            <h3 style={{fontSize:14,fontWeight:700,color:C.navy,margin:"0 0 3px",lineHeight:1.3}}>{p.name}</h3>
+            <p style={{fontSize:11,color:C.textSecondary,margin:"0 0 2px",fontWeight:600}}>{p.responsible}</p>
+            {p.sede&&<p style={{fontSize:10,color:C.textMuted,margin:0,fontWeight:600}}>📍 {p.sede}</p>}
+          </div>
+        </div>
       </div>
       <div style={{height:1,background:C.borderLight}}/>
       <div style={{padding:"12px 18px"}}><PhaseBar phase={p.phase}/></div>
