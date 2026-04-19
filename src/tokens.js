@@ -31,6 +31,13 @@ export const lbl  = { fontSize:10,fontWeight:700,textTransform:"uppercase",lette
 export const btnP = { padding:"10px 24px",borderRadius:6,border:"none",cursor:"pointer",background:C.navy,color:C.white,fontWeight:700,fontSize:13,fontFamily:font };
 export const btnS = { padding:"10px 24px",borderRadius:6,border:`1px solid ${C.border}`,background:C.white,color:C.textSecondary,fontWeight:700,fontSize:13,fontFamily:font,cursor:"pointer" };
 
+export function formatLocations(sede) {
+  if (!sede) return null;
+  const parts = sede.split(",").map(s => s.trim()).filter(Boolean);
+  if (parts.length === 0) return null;
+  return parts.length === 1 ? parts[0] : "Varias sedes";
+}
+
 export function imgUrl(src, width = 800) {
   if (!src || !src.includes("raw.githubusercontent.com")) return src;
   return `https://wsrv.nl/?url=${encodeURIComponent(src)}&output=webp&w=${width}&q=85`;

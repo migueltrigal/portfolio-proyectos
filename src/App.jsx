@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback, useEffect, lazy, Suspense } from "react";
 import { loadAll, crearProyecto, editarProyecto, crearAvance, crearContrato, crearPago } from "./api.js";
-import { C, font, PHASES, PHASE_INDEX, STATUSES, STATUS_CONFIG, fmtD, btnP, imgUrl } from "./tokens.js";
+import { C, font, PHASES, PHASE_INDEX, STATUSES, STATUS_CONFIG, fmtD, btnP, imgUrl, formatLocations } from "./tokens.js";
 import { AuthCtx, EDITOR_KEY, useAuth } from "./context.js";
 
 const LOGO_SRC = import.meta.env.BASE_URL + "logo.png";
@@ -90,7 +90,7 @@ function ProjectCard({project:p,onClick}){
           <div>
             <h3 style={{fontSize:14,fontWeight:700,color:C.navy,margin:"0 0 3px",lineHeight:1.3}}>{p.name}</h3>
             <p style={{fontSize:11,color:C.textSecondary,margin:"0 0 2px",fontWeight:600}}>{p.responsible}</p>
-            {p.sede&&<p style={{fontSize:10,color:C.textMuted,margin:0,fontWeight:600}}>📍 {p.sede}</p>}
+            {formatLocations(p.sede)&&<p style={{fontSize:10,color:C.textMuted,margin:0,fontWeight:600}}>📍 {formatLocations(p.sede)}</p>}
           </div>
         </div>
       </div>
@@ -130,12 +130,15 @@ export default function App(){
 
   const sel = projects.find(p => p.id === selId) || null;
   const filtered = useMemo(() => filter === "Todos" ? projects : projects.filter(p => p.status === filter), [filter, projects]);
-  const stats = useMemo(() => ({
-    enCurso:    projects.filter(p => p.status === "En curso").length,
-    pausados:   projects.filter(p => p.status === "Pausado").length,
-    completados:projects.filter(p => p.status === "Completado").length,
-    cancelados: projects.filter(p => p.status === "Cancelado").length,
-  }), [projects]);
+  const stats = useMemo(() => {
+    const activos = projects.filter(p => p.status === "En curso");
+    return {
+      activos:       activos.length,
+      prototipado:   activos.filter(p => p.phase === "Prototipado").length,
+      piloto:        activos.filter(p => p.phase === "Piloto").length,
+      implementacion:activos.filter(p => p.phase === "Implementación").length,
+    };
+  }, [projects]);
 
   const closeModal   = useCallback(() => setModal(null), []);
   const closePayment = useCallback(() => { setModal(null); setPayContract(null); }, []);
@@ -191,11 +194,16 @@ export default function App(){
               {isEditor&&<button onClick={()=>setModal("create")} style={{...btnP,fontSize:12,padding:isMobile?"8px 14px":"10px 24px"}}>+ Nuevo proyecto</button>}
             </div>
           </div>
-          <div style={{ display:isMobile?"grid":"flex",gridTemplateColumns:"1fr 1fr",background:C.white,borderRadius:8,border:`1px solid ${C.border}`,overflow:"hidden",marginBottom:16 }}>
-            {[{label:"En curso",value:stats.enCurso,accent:"#16a34a"},{label:"Pausados",value:stats.pausados,accent:"#64748b"},{label:"Completados",value:stats.completados,accent:C.teal},{label:"Cancelados",value:stats.cancelados,accent:stats.cancelados>0?"#dc2626":null}].map((s,i)=>(
-              <div key={i} style={{ flex:1,padding:isMobile?"10px 12px":"14px 18px",borderRight:isMobile?(i%2===0?`1px solid ${C.borderLight}`:"none"):(i<3?`1px solid ${C.borderLight}`:"none"),borderBottom:isMobile&&i<2?`1px solid ${C.borderLight}`:"none" }}>
-                <p style={{ fontSize:9,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",color:C.textMuted,margin:"0 0 2px" }}>{s.label}</p>
-                <p style={{ fontSize:isMobile?17:20,fontWeight:700,color:s.accent||C.navy,margin:0 }}>{s.value}</p>
+          <div style={{ display:"grid",gridTemplateColumns:isMobile?"1fr 1fr":"repeat(4,1fr)",marginBottom:16,gap:0 }}>
+            {[
+              {label:"Activos",        value:stats.activos,        accent:C.teal},
+              {label:"En prototipado", value:stats.prototipado,    accent:null},
+              {label:"En piloto",      value:stats.piloto,         accent:null},
+              {label:"En implementación",value:stats.implementacion,accent:null},
+            ].map((s,i)=>(
+              <div key={i} style={{ padding:isMobile?"12px 10px":"16px 20px",borderRight:(!isMobile&&i<3)||( isMobile&&i%2===0)?`1px solid ${C.borderLight}`:"none",borderBottom:isMobile&&i<2?`1px solid ${C.borderLight}`:"none" }}>
+                <p style={{ fontSize:9,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",color:C.textMuted,margin:"0 0 4px" }}>{s.label}</p>
+                <p style={{ fontSize:isMobile?26:30,fontWeight:500,color:s.accent||C.textPrimary,margin:0,lineHeight:1 }}>{s.value}</p>
               </div>
             ))}
           </div>
