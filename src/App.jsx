@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback, useEffect, lazy, Suspense } from "react";
 import { loadAll, crearProyecto, editarProyecto, crearAvance, crearContrato, crearPago } from "./api.js";
 import { C, font, PHASES, PHASE_INDEX, STATUSES, STATUS_CONFIG, fmtD, btnP, imgUrl, formatLocations } from "./tokens.js";
+
 import { AuthCtx, EDITOR_KEY, useAuth } from "./context.js";
 
 const LOGO_SRC = import.meta.env.BASE_URL + "logo.png";
@@ -31,7 +32,7 @@ function Spinner({ text = "Cargando..." }) {
 }
 
 /* ─── Auth Bar ─── */
-function AuthBar({ isEditor, onLogin, onLogout }) {
+function AuthBar({ isEditor, onLogin, onLogout, dark }) {
   const [show, setShow] = useState(false);
   const [pw, setPw] = useState("");
   const [err, setErr] = useState(false);
@@ -39,17 +40,17 @@ function AuthBar({ isEditor, onLogin, onLogout }) {
   if (isEditor) return (
     <div style={{ display:"flex",alignItems:"center",gap:10 }}>
       <span style={{ fontSize:10,fontWeight:700,color:"#16a34a",background:"#f0fdf4",border:"1px solid #bbf7d0",padding:"4px 10px",borderRadius:5,textTransform:"uppercase",letterSpacing:"0.06em" }}>● Editor</span>
-      <button onClick={onLogout} style={{ background:"none",border:"none",fontSize:11,color:C.textMuted,cursor:"pointer",fontFamily:font,fontWeight:600,textDecoration:"underline" }}>Salir</button>
+      <button onClick={onLogout} style={{ background:"none",border:"none",fontSize:11,color:dark?"rgba(255,255,255,0.7)":C.textMuted,cursor:"pointer",fontFamily:font,fontWeight:600,textDecoration:"underline" }}>Salir</button>
     </div>
   );
   if (show) return (
     <div style={{ display:"flex",alignItems:"center",gap:8 }}>
       <input type="password" placeholder="Clave" value={pw} onChange={e=>{setPw(e.target.value);setErr(false);}} onKeyDown={e=>{if(e.key==="Enter"){if(pw===EDITOR_KEY){onLogin();setShow(false);setPw("");}else setErr(true);}}} style={{...inpStyle,width:130,padding:"6px 10px",fontSize:12,borderColor:err?"#dc2626":C.border}} autoFocus/>
       <button onClick={()=>{if(pw===EDITOR_KEY){onLogin();setShow(false);setPw("");}else setErr(true);}} style={{...btnP,padding:"6px 14px",fontSize:11}}>Entrar</button>
-      <button onClick={()=>{setShow(false);setPw("");setErr(false);}} style={{background:"none",border:"none",fontSize:16,color:C.textMuted,cursor:"pointer",lineHeight:1}}>✕</button>
+      <button onClick={()=>{setShow(false);setPw("");setErr(false);}} style={{background:"none",border:"none",fontSize:16,color:dark?"rgba(255,255,255,0.7)":C.textMuted,cursor:"pointer",lineHeight:1}}>✕</button>
     </div>
   );
-  return <button onClick={()=>setShow(true)} style={{background:"none",border:`1px solid ${C.border}`,borderRadius:6,padding:"5px 12px",fontSize:10,fontWeight:700,color:C.textMuted,cursor:"pointer",fontFamily:font}}>🔑 Acceso editor</button>;
+  return <button onClick={()=>setShow(true)} style={{background:dark?"rgba(255,255,255,0.1)":"none",border:dark?"0.5px solid rgba(255,255,255,0.25)":`1px solid ${C.border}`,borderRadius:6,padding:"5px 12px",fontSize:10,fontWeight:700,color:dark?"rgba(255,255,255,0.9)":C.textMuted,cursor:"pointer",fontFamily:font}}>🔑 Acceso editor</button>;
 }
 
 /* ─── Phase Bar (compact, used in ProjectCard) ─── */
@@ -177,61 +178,66 @@ export default function App(){
       />
     </Suspense>
   ) : (
-    <div>
-      {/* Franja superior clara */}
-      <div style={{ background:C.bg,padding:isMobile?"12px 10px 16px":"18px 16px 20px",borderBottom:`3px solid ${C.border}` }}>
-        <div style={{ maxWidth:1100,margin:"0 auto" }}>
-          <div style={{ display:"flex",flexDirection:isMobile?"column":"row",justifyContent:"space-between",alignItems:"flex-start",gap:12,marginBottom:20 }}>
-            <div style={{ display:"flex",alignItems:"center",gap:12 }}>
-              <img src={LOGO_SRC} alt="I+D" style={{ height:isMobile?36:48,flexShrink:0 }} />
-              <div>
-                <p style={{ fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.12em",color:C.textMuted,margin:"0 0 2px" }}>Innovación y Transformación Digital</p>
-                <h1 style={{ fontSize:isMobile?18:22,fontWeight:700,color:C.navy,margin:0,letterSpacing:"-0.01em" }}>Portafolio de Proyectos</h1>
-              </div>
+    <div style={{ padding:isMobile?"12px 10px":"22px 16px" }}>
+      <div style={{ maxWidth:1100,margin:"0 auto" }}>
+
+        {/* Header sobre el azul */}
+        <div style={{ display:"flex",flexDirection:isMobile?"column":"row",justifyContent:"space-between",alignItems:"flex-start",gap:12,marginBottom:20 }}>
+          <div style={{ display:"flex",alignItems:"center",gap:12 }}>
+            <div style={{ background:C.white,borderRadius:8,padding:"4px 6px",flexShrink:0,display:"flex",alignItems:"center" }}>
+              <img src={LOGO_SRC} alt="I+D" style={{ height:isMobile?30:40,display:"block" }} />
             </div>
-            <div style={{ display:"flex",alignItems:"center",gap:10 }}>
-              <AuthBar isEditor={isEditor} onLogin={()=>setIsEditor(true)} onLogout={()=>setIsEditor(false)} />
-              {isEditor&&<button onClick={()=>setModal("create")} style={{...btnP,fontSize:12,padding:isMobile?"8px 14px":"10px 24px"}}>+ Nuevo proyecto</button>}
+            <div>
+              <p style={{ fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.12em",color:"rgba(255,255,255,0.6)",margin:"0 0 2px" }}>Innovación y Transformación Digital</p>
+              <h1 style={{ fontSize:isMobile?18:22,fontWeight:700,color:C.white,margin:0,letterSpacing:"-0.01em" }}>Portafolio de Proyectos</h1>
             </div>
           </div>
-          <div style={{ display:"grid",gridTemplateColumns:isMobile?"1fr 1fr":"repeat(4,1fr)",marginBottom:16,gap:0 }}>
+          <div style={{ display:"flex",alignItems:"center",gap:10 }}>
+            <AuthBar isEditor={isEditor} onLogin={()=>setIsEditor(true)} onLogout={()=>setIsEditor(false)} dark />
+            {isEditor&&<button onClick={()=>setModal("create")} style={{...btnP,fontSize:12,padding:isMobile?"8px 14px":"10px 24px"}}>+ Nuevo proyecto</button>}
+          </div>
+        </div>
+
+        {/* KPIs — isla blanca */}
+        <div style={{ background:C.white,borderRadius:12,overflow:"hidden",marginBottom:16 }}>
+          <div style={{ display:"grid",gridTemplateColumns:isMobile?"1fr 1fr":"repeat(4,1fr)" }}>
             {[
-              {label:"Activos",        value:stats.activos,        accent:C.teal},
-              {label:"En prototipado", value:stats.prototipado,    accent:null},
-              {label:"En piloto",      value:stats.piloto,         accent:null},
-              {label:"En implementación",value:stats.implementacion,accent:null},
+              {label:"Activos",           value:stats.activos,        accent:C.teal},
+              {label:"En prototipado",    value:stats.prototipado,    accent:null},
+              {label:"En piloto",         value:stats.piloto,         accent:null},
+              {label:"En implementación", value:stats.implementacion, accent:null},
             ].map((s,i)=>(
-              <div key={i} style={{ padding:isMobile?"12px 10px":"16px 20px",borderRight:(!isMobile&&i<3)||( isMobile&&i%2===0)?`1px solid ${C.borderLight}`:"none",borderBottom:isMobile&&i<2?`1px solid ${C.borderLight}`:"none" }}>
+              <div key={i} style={{ padding:isMobile?"12px 14px":"16px 24px",borderRight:(!isMobile&&i<3)||(isMobile&&i%2===0)?`1px solid ${C.borderLight}`:"none",borderBottom:isMobile&&i<2?`1px solid ${C.borderLight}`:"none" }}>
                 <p style={{ fontSize:9,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",color:C.textMuted,margin:"0 0 4px" }}>{s.label}</p>
                 <p style={{ fontSize:isMobile?26:30,fontWeight:500,color:s.accent||C.textPrimary,margin:0,lineHeight:1 }}>{s.value}</p>
               </div>
             ))}
           </div>
-          <div style={{ display:"flex",gap:5,flexWrap:isMobile?"nowrap":"wrap",overflowX:isMobile?"auto":"visible",paddingBottom:isMobile?4:0 }}>
-            {["Todos",...STATUSES].map(f=>{ const a=filter===f; const cfg=f!=="Todos"?STATUS_CONFIG[f]:null; return(
-              <button key={f} onClick={()=>setFilter(f)} style={{ padding:isMobile?"8px 12px":"6px 14px",minHeight:36,borderRadius:6,border:`1px solid ${a?C.navy:C.border}`,background:a?C.navy:C.white,color:a?C.white:C.textSecondary,fontWeight:700,fontSize:11,cursor:"pointer",fontFamily:font,flexShrink:0,whiteSpace:"nowrap" }}>{cfg?cfg.icon+" ":""}{f}</button>
-            ); })}
-          </div>
         </div>
-      </div>
-      {/* Zona oscura con tarjetas */}
-      <div style={{ padding:isMobile?"16px 10px":"24px 16px" }}>
-        <div style={{ maxWidth:1100,margin:"0 auto" }}>
-          <div style={{ display:"grid",gridTemplateColumns:isMobile?"1fr":"repeat(auto-fill, minmax(300px, 1fr))",gap:14 }}>
-            {filtered.map(p=><ProjectCard key={p.id} project={p} onClick={()=>setSelId(p.id)}/>)}
-          </div>
-          {filtered.length===0&&<div style={{ textAlign:"center",padding:60,color:"#8eaac8",fontSize:13 }}>No hay proyectos{filter!=="Todos"?` con estado "${filter}"`:"."}</div>}
-          <div style={{ display:"flex",height:4,borderRadius:2,marginTop:32,overflow:"hidden" }}>
-            <div style={{ flex:3,background:C.navy }}/><div style={{ flex:1,background:C.orange }}/>
-          </div>
+
+        {/* Filtros — flotando sobre el azul */}
+        <div style={{ display:"flex",gap:5,flexWrap:isMobile?"nowrap":"wrap",overflowX:isMobile?"auto":"visible",paddingBottom:isMobile?4:0,marginBottom:20 }}>
+          {["Todos",...STATUSES].map(f=>{ const a=filter===f; const cfg=f!=="Todos"?STATUS_CONFIG[f]:null; return(
+            <button key={f} onClick={()=>setFilter(f)} style={{ padding:isMobile?"8px 12px":"6px 14px",minHeight:36,borderRadius:6,border:a?"none":"0.5px solid rgba(255,255,255,0.25)",background:a?C.white:"rgba(255,255,255,0.1)",color:a?C.dark:C.white,fontWeight:a?500:700,fontSize:11,cursor:"pointer",fontFamily:font,flexShrink:0,whiteSpace:"nowrap" }}>{cfg?cfg.icon+" ":""}{f}</button>
+          ); })}
         </div>
+
+        {/* Grid de tarjetas */}
+        <div style={{ display:"grid",gridTemplateColumns:isMobile?"1fr":"repeat(auto-fill, minmax(300px, 1fr))",gap:14 }}>
+          {filtered.map(p=><ProjectCard key={p.id} project={p} onClick={()=>setSelId(p.id)}/>)}
+        </div>
+        {filtered.length===0&&<div style={{ textAlign:"center",padding:60,color:"rgba(255,255,255,0.4)",fontSize:13 }}>No hay proyectos{filter!=="Todos"?` con estado "${filter}"`:"."}</div>}
+        <div style={{ display:"flex",height:4,borderRadius:2,marginTop:32,overflow:"hidden" }}>
+          <div style={{ flex:3,background:C.navy }}/><div style={{ flex:1,background:C.orange }}/>
+        </div>
+
       </div>
     </div>
   );
 
   return (
     <AuthCtx.Provider value={{ isEditor, isMobile }}>
-      <div style={{ minHeight:"100vh",background:"#1F3361",fontFamily:font }}>
+      <div style={{ minHeight:"100vh",background:C.dark,fontFamily:font }}>
         {content}
         {modal && (
           <Suspense fallback={null}>

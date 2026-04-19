@@ -1,5 +1,6 @@
 export const C = {
   navy: "#0E2841", teal: "#267B8A", orange: "#E97132", white: "#FFFFFF",
+  dark: "#1F3361",
   bg: "#F4F6F8", cardBg: "#FFFFFF", border: "#DDE3EA", borderLight: "#EEF1F5",
   textPrimary: "#0E2841", textSecondary: "#4A5E74", textMuted: "#8899AB",
 };
