@@ -104,7 +104,7 @@ function ProjectCard({project:p,onClick}){
           {daysSince === null
             ? <span style={{fontSize:10,color:"#94a3b8",whiteSpace:"nowrap"}}>Sin avances</span>
             : stale
-              ? <span style={{fontSize:10,fontWeight:500,background:"#fef3c7",color:"#78350f",padding:"2px 7px",borderRadius:9999,whiteSpace:"nowrap"}}>Sin update {daysSince}d</span>
+              ? <span style={{fontSize:10,fontWeight:500,background:"#fef3c7",color:"#78350f",padding:"2px 7px",borderRadius:9999,whiteSpace:"nowrap"}}>Sin cambios {daysSince}d</span>
               : <span style={{fontSize:10,color:"#94a3b8",whiteSpace:"nowrap"}}>Act. hace {daysSince}d</span>
           }
         </div>
