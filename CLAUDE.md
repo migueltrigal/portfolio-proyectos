@@ -19,7 +19,8 @@ src/
   main.jsx     — Entry point de React
 .env.local     — VITE_GITHUB_TOKEN (gitignoreado, solo desarrollo local)
 index.html     — HTML base
-vite.config.js — Config Vite con base path /portfolio-proyectos/
+vite.config.js — Config Vite con base path /
+public/CNAME — Dominio custom innovacion.trigal-digital.com (GitHub Pages)
 .github/workflows/deploy.yml — GitHub Actions (inyecta VITE_GITHUB_TOKEN desde secret)
 ```
 
@@ -29,10 +30,11 @@ vite.config.js — Config Vite con base path /portfolio-proyectos/
 - En CI: agregar como secret en GitHub → Settings → Secrets → `VITE_GITHUB_TOKEN`
 
 ## Identidad visual
-- **Colores corporativos:** Navy #0E2841 (primario), Teal #267B8A (secundario), Orange #E97132 (acento)
+- **Colores corporativos:** Navy #0E2841 (primario), Teal #267B8A (secundario), Orange #E97132 (acento), Amarillo #FFD40A (título principal)
 - **Fuente:** Aptos con fallback a Segoe UI
 - **Logo:** I+D embebido como base64 en src/logo.js
 - **Estilos:** 100% inline styles, sin archivos CSS. Tokens en el objeto `C` al inicio de App.jsx
+- **Título "Portafolio de Proyectos":** Color #FFD40A (amarillo), ubicado en el header principal
 
 ## Modelo de datos (SharePoint Lists)
 
@@ -78,7 +80,7 @@ vite.config.js — Config Vite con base path /portfolio-proyectos/
 | Monto | Número | Sí |
 
 ## Power Automate Endpoints (en src/api.js)
-- **API-Leer** (GET): Trae las 4 listas completas en un solo JSON. Debe incluir los campos `Sede`, `FotoPrincipal` en proyectos y `FotoEvidencia` en avances.
+- **API-Leer** (GET): Trae las 4 listas completas en un solo JSON. Debe incluir los campos `Sede`, `FotoPrincipal` en proyectos y `FotoEvidencia` en avances. **No requiere modificaciones cuando se agregan columnas nuevas a las listas de SharePoint** — el paso "Obtener elementos" trae todas las columnas automáticamente.
 - **API-CrearProyecto** (POST): Crea item en Proyectos_ITD. Acepta `sede`, `fotoPrincipal` (opcionales).
 - **API-EditarProyecto** (POST): Actualiza item en Proyectos_ITD por ID. Acepta `sede`, `fotoPrincipal` (opcionales).
 - **API-CrearAvance** (POST): Crea item en Avances_ITD. Acepta `fotoEvidencia` (opcional).
@@ -121,4 +123,4 @@ npm run build  # Compilar para producción (genera dist/)
 
 ## Deploy
 Push a `main` → GitHub Actions compila y despliega automáticamente a:
-https://migueltrigal.github.io/portfolio-proyectos/
+https://innovacion.trigal-digital.com/ (dominio custom vía GitHub Pages)
