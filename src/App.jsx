@@ -88,7 +88,7 @@ function ProjectCard({project:p,onClick}){
       onMouseLeave={e=>e.currentTarget.style.boxShadow=""}>
 
       {/* Thumbnail */}
-      <div style={{width:110,flexShrink:0,background:"#f1f5f9",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden"}}>
+      <div style={{width:110,height:110,flexShrink:0,background:"#f1f5f9",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden"}}>
         {p.fotoPrincipal
           ? <img src={imgUrl(p.fotoPrincipal,220)} alt="foto" style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}}/>
           : <span style={{fontSize:32}}>🌱</span>
