@@ -37,8 +37,9 @@ export const INNOVATION_TYPES = {
   "Sensórica / IoT": { label: "SENSÓRICA / IOT",  accent: "#0891b2", barFill: "#0891b2" },
   "Mecanización":    { label: "MECANIZACIÓN",     accent: "#ea580c", barFill: "#ea580c" },
   "Software":        { label: "SOFTWARE",         accent: "#059669", barFill: "#059669" },
-  "Sanidad vegetal": { label: "SANIDAD VEGETAL",  accent: "#db2777", barFill: "#db2777" },
-  "Otro":            { label: "OTRO",             accent: "#64748b", barFill: "#64748b" },
+  "Sanidad vegetal":   { label: "SANIDAD VEGETAL",   accent: "#db2777", barFill: "#db2777" },
+  "Puestos saludables":{ label: "PUESTOS SALUDABLES",accent: "#16a34a", barFill: "#16a34a" },
+  "Otro":              { label: "OTRO",              accent: "#64748b", barFill: "#64748b" },
 };
 
 export function formatLocations(sede) {

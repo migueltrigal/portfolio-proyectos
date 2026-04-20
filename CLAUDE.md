@@ -67,8 +67,9 @@ vite.config.js — Config Vite con base path /portfolio-proyectos/
 "Sensórica / IoT": { accent: "#0891b2", barFill: "#0891b2" }
 "Mecanización":    { accent: "#ea580c", barFill: "#ea580c" }
 "Software":        { accent: "#059669", barFill: "#059669" }
-"Sanidad vegetal": { accent: "#db2777", barFill: "#db2777" }
-"Otro":            { accent: "#64748b", barFill: "#64748b" }  // fallback
+"Sanidad vegetal":    { accent: "#db2777", barFill: "#db2777" }
+"Puestos saludables": { accent: "#16a34a", barFill: "#16a34a" }
+"Otro":               { accent: "#64748b", barFill: "#64748b" }  // fallback
 ```
 - Proyectos sin `TipoInnovacion` en SharePoint → muestran "OTRO" en gris
 - Campo seleccionable en formularios de creación y edición
