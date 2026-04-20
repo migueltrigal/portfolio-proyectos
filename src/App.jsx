@@ -217,7 +217,7 @@ export default function App(){
             </div>
             <div>
               <p style={{ fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.12em",color:"rgba(255,255,255,0.6)",margin:"0 0 2px" }}>Innovación y Transformación Digital</p>
-              <h1 style={{ fontSize:isMobile?18:22,fontWeight:700,color:C.white,margin:0,letterSpacing:"-0.01em" }}>Portafolio de Proyectos</h1>
+              <h1 style={{ fontSize:isMobile?18:22,fontWeight:700,color:"#FFD40A",margin:0,letterSpacing:"-0.01em" }}>Portafolio de Proyectos</h1>
             </div>
           </div>
           <div style={{ display:"flex",alignItems:"center",gap:10 }}>
