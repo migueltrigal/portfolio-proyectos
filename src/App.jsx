@@ -83,14 +83,14 @@ function ProjectCard({project:p,onClick}){
   const stale = daysSince !== null && daysSince > 30;
 
   return(
-    <div onClick={onClick} style={{background:C.white,borderRadius:10,cursor:"pointer",border:"0.5px solid #e2e8f0",overflow:"hidden",transition:"box-shadow 0.2s",display:"flex",minHeight:128}}
+    <div onClick={onClick} style={{background:C.white,borderRadius:10,cursor:"pointer",border:"0.5px solid #e2e8f0",overflow:"hidden",transition:"box-shadow 0.2s",display:"flex",height:128}}
       onMouseEnter={e=>e.currentTarget.style.boxShadow="0 8px 24px rgba(15,23,42,0.12)"}
       onMouseLeave={e=>e.currentTarget.style.boxShadow=""}>
 
       {/* Thumbnail */}
       <div style={{width:110,flexShrink:0,background:"#f1f5f9",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden"}}>
         {p.fotoPrincipal
-          ? <img src={imgUrl(p.fotoPrincipal,220)} alt="foto" style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}}/>
+          ? <img src={imgUrl(p.fotoPrincipal,220)} alt="foto" style={{width:"100%",height:"100%",objectFit:"cover",objectPosition:"center",display:"block"}}/>
           : <span style={{fontSize:32}}>🌱</span>
         }
       </div>
@@ -111,8 +111,8 @@ function ProjectCard({project:p,onClick}){
 
         {/* Bloque central: título + responsable */}
         <div style={{marginBottom:8,minWidth:0}}>
-          <h3 style={{fontSize:15,fontWeight:500,color:"#0f172a",margin:"0 0 3px",lineHeight:1.25,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</h3>
-          <p style={{fontSize:11,color:"#64748b",margin:0}}>
+          <h3 style={{fontSize:15,fontWeight:500,color:"#0f172a",margin:"0 0 2px",lineHeight:1.25,display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{p.name}</h3>
+          <p style={{fontSize:11,color:"#64748b",margin:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
             {p.responsible}{loc ? ` · ${loc}` : ""}
           </p>
         </div>
