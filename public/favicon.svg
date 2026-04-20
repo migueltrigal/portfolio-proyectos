@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="32" height="32" rx="6" fill="#0E2841"/>
+  <text x="16" y="13" font-family="Segoe UI, Arial, sans-serif" font-size="10" font-weight="700" fill="#FFD40A" text-anchor="middle" dominant-baseline="middle">I+D</text>
+  <text x="16" y="24" font-family="Segoe UI, Arial, sans-serif" font-size="6.5" font-weight="500" fill="rgba(255,255,255,0.7)" text-anchor="middle" dominant-baseline="middle">TRIGAL</text>
+</svg>
