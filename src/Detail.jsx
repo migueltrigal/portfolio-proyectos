@@ -50,14 +50,14 @@ function ContractBlock({contract,onAddPayment}){
         </div>}
         {contract.payments.map(pay=>(
           isMobile
-            ?<div key={pay.id} style={{padding:"10px 18px",borderBottom:`1px solid ${C.bg}`}}>
+            ?<div key={pay.id} style={{padding:"10px 18px",borderBottom:`1px solid ${C.bg}`,background:C.white}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:2}}>
                   <span style={{fontSize:10,color:C.textMuted,fontWeight:600}}>{fmtD(pay.date)}</span>
                   <span style={{fontSize:13,fontWeight:700,color:C.navy}}>{fmt(pay.amount)}</span>
                 </div>
                 {pay.note&&<span style={{fontSize:11,color:C.textSecondary,fontWeight:500}}>{pay.note}</span>}
               </div>
-            :<div key={pay.id} style={{display:"grid",gridTemplateColumns:"100px 1fr 120px",padding:"10px 18px",borderBottom:`1px solid ${C.bg}`,alignItems:"center"}}>
+            :<div key={pay.id} style={{display:"grid",gridTemplateColumns:"100px 1fr 120px",padding:"10px 18px",borderBottom:`1px solid ${C.bg}`,alignItems:"center",background:C.white}}>
                 <span style={{fontSize:11,color:C.textSecondary,fontWeight:600}}>{fmtD(pay.date)}</span>
                 <span style={{fontSize:12,color:C.textPrimary,fontWeight:500}}>{pay.note||"—"}</span>
                 <span style={{fontSize:12,fontWeight:700,color:C.navy,textAlign:"right"}}>{fmt(pay.amount)}</span>
