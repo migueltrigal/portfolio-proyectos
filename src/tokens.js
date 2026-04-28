@@ -6,14 +6,18 @@ export const C = {
 };
 export const font = "'Aptos', 'Segoe UI', -apple-system, sans-serif";
 
+export const radSm = 2;
+export const radMd = 4;
+export const radLg = 6;
+
 export const PHASES = ["Ideación","Iniciación","Prototipado","Piloto","Implementación","Entrega","Seguimiento"];
 export const PHASE_INDEX = Object.fromEntries(PHASES.map((p, i) => [p, i]));
 export const STATUSES = ["En curso","Pausado","Completado","Cancelado"];
 export const STATUS_CONFIG = {
-  "En curso":    { color: "#16a34a", bg: "#f0fdf4", border: "#bbf7d0", icon: "●" },
-  "Pausado":     { color: "#64748b", bg: "#f1f5f9", border: "#cbd5e1", icon: "❚❚" },
-  "Completado":  { color: C.teal,    bg: "#EEF7F8", border: "#B8DDE2", icon: "✓" },
-  "Cancelado":   { color: "#dc2626", bg: "#fef2f2", border: "#fecaca", icon: "✕" },
+  "En curso":    { color: "#16a34a", bg: "#f0fdf4", border: "#bbf7d0" },
+  "Pausado":     { color: "#64748b", bg: "#f1f5f9", border: "#cbd5e1" },
+  "Completado":  { color: C.teal,    bg: "#EEF7F8", border: "#B8DDE2" },
+  "Cancelado":   { color: "#dc2626", bg: "#fef2f2", border: "#fecaca" },
 };
 
 export const fmt  = n => "$" + n.toLocaleString("es-CO");
@@ -27,10 +31,10 @@ export const fmtD = d => {
 export const sumPay = cs => cs.reduce((s,c) => s + c.payments.reduce((ss,p) => ss + p.amount, 0), 0);
 export const sumVal = cs => cs.reduce((s,c) => s + c.value, 0);
 
-export const inp  = { width:"100%",padding:"10px 12px",borderRadius:6,fontSize:13,border:`1px solid ${C.border}`,fontFamily:font,fontWeight:500,color:C.textPrimary,background:C.white,outline:"none",boxSizing:"border-box" };
+export const inp  = { width:"100%",padding:"10px 12px",borderRadius:radMd,fontSize:13,border:`1px solid ${C.border}`,fontFamily:font,fontWeight:500,color:C.textPrimary,background:C.white,outline:"none",boxSizing:"border-box" };
 export const lbl  = { fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",color:C.textMuted,display:"block",marginBottom:5 };
-export const btnP = { padding:"10px 24px",borderRadius:6,border:"none",cursor:"pointer",background:C.navy,color:C.white,fontWeight:700,fontSize:13,fontFamily:font };
-export const btnS = { padding:"10px 24px",borderRadius:6,border:`1px solid ${C.border}`,background:C.white,color:C.textSecondary,fontWeight:700,fontSize:13,fontFamily:font,cursor:"pointer" };
+export const btnP = { padding:"10px 24px",borderRadius:radMd,border:"none",cursor:"pointer",background:C.navy,color:C.white,fontWeight:700,fontSize:13,fontFamily:font };
+export const btnS = { padding:"10px 24px",borderRadius:radMd,border:`1px solid ${C.border}`,background:C.white,color:C.textSecondary,fontWeight:700,fontSize:13,fontFamily:font,cursor:"pointer" };
 
 export const INNOVATION_TYPES = {
   "IA / visión":     { label: "IA / VISIÓN",      accent: "#7c3aed", barFill: "#7c3aed" },

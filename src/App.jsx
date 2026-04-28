@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback, useEffect, lazy, Suspense } from "react";
 import { loadAll, crearProyecto, editarProyecto, crearAvance, crearContrato, crearPago } from "./api.js";
-import { C, font, PHASES, PHASE_INDEX, STATUSES, STATUS_CONFIG, INNOVATION_TYPES, fmtD, btnP, imgUrl, formatLocations } from "./tokens.js";
+import { C, font, PHASES, PHASE_INDEX, STATUSES, STATUS_CONFIG, INNOVATION_TYPES, fmtD, btnP, imgUrl, formatLocations, radSm, radMd, radLg } from "./tokens.js";
 
 import { AuthCtx, EDITOR_KEY, useAuth } from "./context.js";
 
@@ -36,10 +36,10 @@ function AuthBar({ isEditor, onLogin, onLogout, dark }) {
   const [show, setShow] = useState(false);
   const [pw, setPw] = useState("");
   const [err, setErr] = useState(false);
-  const inpStyle = { width:"100%",padding:"10px 12px",borderRadius:6,fontSize:13,border:`1px solid ${C.border}`,fontFamily:font,fontWeight:500,color:C.textPrimary,background:C.white,outline:"none",boxSizing:"border-box" };
+  const inpStyle = { width:"100%",padding:"10px 12px",borderRadius:radMd,fontSize:13,border:`1px solid ${C.border}`,fontFamily:font,fontWeight:500,color:C.textPrimary,background:C.white,outline:"none",boxSizing:"border-box" };
   if (isEditor) return (
     <div style={{ display:"flex",alignItems:"center",gap:10 }}>
-      <span style={{ fontSize:10,fontWeight:700,color:"#16a34a",background:"#f0fdf4",border:"1px solid #bbf7d0",padding:"4px 10px",borderRadius:5,textTransform:"uppercase",letterSpacing:"0.06em" }}>● Editor</span>
+      <span style={{ fontSize:10,fontWeight:700,color:"#16a34a",background:"#f0fdf4",border:"1px solid #bbf7d0",padding:"4px 10px",borderRadius:radSm,textTransform:"uppercase",letterSpacing:"0.06em",display:"inline-flex",alignItems:"center",gap:6 }}><span style={{ width:6,height:6,borderRadius:"50%",background:"#16a34a",display:"inline-block" }}/>Editor</span>
       <button onClick={onLogout} style={{ background:"none",border:"none",fontSize:11,color:dark?"rgba(255,255,255,0.7)":C.textMuted,cursor:"pointer",fontFamily:font,fontWeight:600,textDecoration:"underline" }}>Salir</button>
     </div>
   );
@@ -50,7 +50,7 @@ function AuthBar({ isEditor, onLogin, onLogout, dark }) {
       <button onClick={()=>{setShow(false);setPw("");setErr(false);}} style={{background:"none",border:"none",fontSize:16,color:dark?"rgba(255,255,255,0.7)":C.textMuted,cursor:"pointer",lineHeight:1}}>✕</button>
     </div>
   );
-  return <button onClick={()=>setShow(true)} style={{background:dark?"rgba(255,255,255,0.1)":"none",border:dark?"0.5px solid rgba(255,255,255,0.25)":`1px solid ${C.border}`,borderRadius:6,padding:"5px 12px",fontSize:10,fontWeight:700,color:dark?"rgba(255,255,255,0.9)":C.textMuted,cursor:"pointer",fontFamily:font}}>🔑 Acceso editor</button>;
+  return <button onClick={()=>setShow(true)} style={{background:dark?"rgba(255,255,255,0.1)":"none",border:dark?"0.5px solid rgba(255,255,255,0.25)":`1px solid ${C.border}`,borderRadius:radMd,padding:"5px 12px",fontSize:10,fontWeight:700,color:dark?"rgba(255,255,255,0.9)":C.textMuted,cursor:"pointer",fontFamily:font,letterSpacing:"0.06em",textTransform:"uppercase"}}>Acceso editor</button>;
 }
 
 /* ─── Phase Bar (compact, used in ProjectCard) ─── */
@@ -59,11 +59,11 @@ function PhaseBar({phase}){
   return(
     <div>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:5}}>
-        <span style={{fontSize:11,fontWeight:700,color:C.teal,background:"#EEF7F8",border:`1px solid #B8DDE2`,padding:"2px 9px",borderRadius:4,letterSpacing:"0.01em"}}>{phase}</span>
+        <span style={{fontSize:11,fontWeight:700,color:C.teal,background:"#EEF7F8",border:`1px solid #B8DDE2`,padding:"2px 9px",borderRadius:radSm,letterSpacing:"0.01em"}}>{phase}</span>
         <span style={{fontSize:10,color:C.textMuted,fontWeight:600}}>{idx+1}/{PHASES.length}</span>
       </div>
       <div style={{display:"flex",gap:2}}>
-        {PHASES.map((_,i)=><div key={i} style={{flex:1,height:3,borderRadius:2,background:i<=idx?C.teal:C.borderLight}}/>)}
+        {PHASES.map((_,i)=><div key={i} style={{flex:1,height:3,borderRadius:radSm,background:i<=idx?C.teal:C.borderLight}}/>)}
       </div>
     </div>
   );
@@ -83,15 +83,15 @@ function ProjectCard({project:p,onClick}){
   const stale = daysSince !== null && daysSince > 30;
 
   return(
-    <div onClick={onClick} style={{background:C.white,borderRadius:10,cursor:"pointer",border:"0.5px solid #e2e8f0",overflow:"hidden",transition:"box-shadow 0.2s",display:"flex",height:128}}
-      onMouseEnter={e=>e.currentTarget.style.boxShadow="0 8px 24px rgba(15,23,42,0.12)"}
+    <div onClick={onClick} style={{background:C.white,borderRadius:radMd,cursor:"pointer",border:"1px solid #e2e8f0",overflow:"hidden",transition:"box-shadow 0.2s",display:"flex",height:128}}
+      onMouseEnter={e=>e.currentTarget.style.boxShadow="0 2px 8px rgba(15,23,42,0.08)"}
       onMouseLeave={e=>e.currentTarget.style.boxShadow=""}>
 
       {/* Thumbnail */}
-      <div style={{width:110,flexShrink:0,background:"#f1f5f9",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden"}}>
+      <div style={{width:110,flexShrink:0,background:`linear-gradient(135deg, ${it.accent}14, ${it.accent}26)`,display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden"}}>
         {p.fotoPrincipal
           ? <img src={imgUrl(p.fotoPrincipal,220)} alt="foto" style={{width:"100%",height:"100%",objectFit:"cover",objectPosition:"center",display:"block"}}/>
-          : <span style={{fontSize:32}}>🌱</span>
+          : <span style={{fontSize:34,fontWeight:700,color:it.accent,letterSpacing:"-0.02em",fontFamily:font}}>{(p.name||"·").charAt(0).toUpperCase()}</span>
         }
       </div>
 
@@ -104,7 +104,7 @@ function ProjectCard({project:p,onClick}){
           {daysSince === null
             ? <span style={{fontSize:10,color:"#94a3b8",whiteSpace:"nowrap"}}>Sin avances</span>
             : stale
-              ? <span style={{fontSize:10,fontWeight:500,background:"#fef3c7",color:"#78350f",padding:"2px 7px",borderRadius:9999,whiteSpace:"nowrap"}}>Sin cambios {daysSince}d</span>
+              ? <span style={{fontSize:10,fontWeight:600,background:"#fef3c7",color:"#78350f",padding:"2px 7px",borderRadius:radSm,whiteSpace:"nowrap",border:"1px solid #fde68a"}}>Sin cambios {daysSince}d</span>
               : <span style={{fontSize:10,color:"#94a3b8",whiteSpace:"nowrap"}}>Act. hace {daysSince}d</span>
           }
         </div>
@@ -120,8 +120,8 @@ function ProjectCard({project:p,onClick}){
         {/* Bloque inferior: fase + barra + contador */}
         <div style={{display:"flex",alignItems:"center",gap:10}}>
           <span style={{fontSize:10,fontWeight:500,color:"#0f172a",whiteSpace:"nowrap"}}>{p.phase}</span>
-          <div style={{flex:1,height:3,background:"#f1f5f9",borderRadius:9999,overflow:"hidden"}}>
-            <div style={{width:`${pct}%`,height:"100%",background:it.barFill,borderRadius:9999}}/>
+          <div style={{flex:1,height:3,background:"#f1f5f9",borderRadius:radSm,overflow:"hidden"}}>
+            <div style={{width:`${pct}%`,height:"100%",background:it.barFill,borderRadius:radSm}}/>
           </div>
           <span style={{fontSize:10,fontWeight:500,color:"#64748b",fontVariantNumeric:"tabular-nums",whiteSpace:"nowrap"}}>{phaseIdx+1}/7</span>
         </div>
@@ -212,7 +212,7 @@ export default function App(){
         {/* Header sobre el azul */}
         <div style={{ display:"flex",flexDirection:isMobile?"column":"row",justifyContent:"space-between",alignItems:"flex-start",gap:12,marginBottom:20 }}>
           <div style={{ display:"flex",alignItems:"center",gap:12 }}>
-            <div style={{ background:C.white,borderRadius:8,padding:"4px 6px",flexShrink:0,display:"flex",alignItems:"center" }}>
+            <div style={{ background:C.white,borderRadius:radMd,padding:"4px 6px",flexShrink:0,display:"flex",alignItems:"center" }}>
               <img src={LOGO_SRC} alt="I+D" style={{ height:isMobile?30:40,display:"block" }} />
             </div>
             <div>
@@ -227,7 +227,7 @@ export default function App(){
         </div>
 
         {/* KPIs — isla blanca */}
-        <div style={{ background:C.white,borderRadius:12,overflow:"hidden",marginBottom:16 }}>
+        <div style={{ background:C.white,borderRadius:radLg,overflow:"hidden",marginBottom:16 }}>
           <div style={{ display:"grid",gridTemplateColumns:isMobile?"1fr 1fr":"repeat(4,1fr)" }}>
             {[
               {label:"Activos",           value:stats.activos,        accent:C.teal},
@@ -246,7 +246,7 @@ export default function App(){
         {/* Filtros — flotando sobre el azul */}
         <div style={{ display:"flex",gap:5,flexWrap:isMobile?"nowrap":"wrap",overflowX:isMobile?"auto":"visible",paddingBottom:isMobile?4:0,marginBottom:20 }}>
           {["Todos",...STATUSES].map(f=>{ const a=filter===f; const cfg=f!=="Todos"?STATUS_CONFIG[f]:null; return(
-            <button key={f} onClick={()=>setFilter(f)} style={{ padding:isMobile?"8px 12px":"6px 14px",minHeight:36,borderRadius:6,border:a?"none":"0.5px solid rgba(255,255,255,0.25)",background:a?C.white:"rgba(255,255,255,0.1)",color:a?C.dark:C.white,fontWeight:a?500:700,fontSize:11,cursor:"pointer",fontFamily:font,flexShrink:0,whiteSpace:"nowrap" }}>{cfg?cfg.icon+" ":""}{f}</button>
+            <button key={f} onClick={()=>setFilter(f)} style={{ padding:isMobile?"8px 12px":"6px 14px",minHeight:36,borderRadius:radMd,border:a?"none":"0.5px solid rgba(255,255,255,0.25)",background:a?C.white:"rgba(255,255,255,0.1)",color:a?C.dark:C.white,fontWeight:a?500:700,fontSize:11,cursor:"pointer",fontFamily:font,flexShrink:0,whiteSpace:"nowrap",display:"inline-flex",alignItems:"center",gap:7 }}>{cfg&&<span style={{ width:7,height:7,borderRadius:"50%",background:cfg.color,display:"inline-block" }}/>}{f}</button>
           ); })}
         </div>
 
@@ -255,7 +255,7 @@ export default function App(){
           {filtered.map(p=><ProjectCard key={p.id} project={p} onClick={()=>setSelId(p.id)}/>)}
         </div>
         {filtered.length===0&&<div style={{ textAlign:"center",padding:60,color:"rgba(255,255,255,0.4)",fontSize:13 }}>No hay proyectos{filter!=="Todos"?` con estado "${filter}"`:"."}</div>}
-        <div style={{ display:"flex",height:4,borderRadius:2,marginTop:32,overflow:"hidden" }}>
+        <div style={{ display:"flex",height:4,borderRadius:radSm,marginTop:32,overflow:"hidden" }}>
           <div style={{ flex:3,background:C.navy }}/><div style={{ flex:1,background:C.orange }}/>
         </div>
 

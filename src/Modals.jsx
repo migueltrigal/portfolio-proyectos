@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { C, font, PHASES, STATUSES, INNOVATION_TYPES, fmt, inp, lbl, btnP, btnS } from "./tokens.js";
+import { C, font, PHASES, STATUSES, INNOVATION_TYPES, fmt, inp, lbl, btnP, btnS, radSm, radMd, radLg } from "./tokens.js";
 import { useAuth } from "./context.js";
 import { subirFotoGithub } from "./api.js";
 
@@ -36,7 +36,7 @@ function SedeCheckboxes({ id, selected, onChange }) {
 function Modal({title,onClose,children}){
   const{isMobile}=useAuth();
   const ph=isMobile?"14px 16px":"18px 24px",pb=isMobile?"16px 16px":"20px 24px";
-  return(<div style={{position:"fixed",inset:0,zIndex:1000,background:"rgba(14,40,65,0.5)",backdropFilter:"blur(4px)",display:"flex",alignItems:"center",justifyContent:"center",padding:isMobile?8:16}} onClick={onClose}><div onClick={e=>e.stopPropagation()} style={{background:C.white,borderRadius:12,border:`1px solid ${C.border}`,boxShadow:"0 24px 64px rgba(14,40,65,0.20)",width:"100%",maxWidth:560,maxHeight:"90vh",overflow:"auto"}}><div style={{padding:ph,borderBottom:`1px solid ${C.border}`,display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,background:C.white,zIndex:1,borderRadius:"12px 12px 0 0"}}><h2 style={{margin:0,fontSize:16,fontWeight:700,color:C.navy,fontFamily:font}}>{title}</h2><button onClick={onClose} style={{background:"none",border:"none",fontSize:20,color:C.textMuted,cursor:"pointer",padding:4,lineHeight:1}}>✕</button></div><div style={{padding:pb}}>{children}</div></div></div>);
+  return(<div style={{position:"fixed",inset:0,zIndex:1000,background:"rgba(14,40,65,0.5)",backdropFilter:"blur(4px)",display:"flex",alignItems:"center",justifyContent:"center",padding:isMobile?8:16}} onClick={onClose}><div onClick={e=>e.stopPropagation()} style={{background:C.white,borderRadius:radLg,border:`1px solid ${C.border}`,boxShadow:"0 24px 64px rgba(14,40,65,0.20)",width:"100%",maxWidth:560,maxHeight:"90vh",overflow:"auto"}}><div style={{padding:ph,borderBottom:`1px solid ${C.border}`,display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,background:C.white,zIndex:1,borderRadius:`${radLg}px ${radLg}px 0 0`}}><h2 style={{margin:0,fontSize:16,fontWeight:700,color:C.navy,fontFamily:font}}>{title}</h2><button onClick={onClose} style={{background:"none",border:"none",fontSize:20,color:C.textMuted,cursor:"pointer",padding:4,lineHeight:1}}>×</button></div><div style={{padding:pb}}>{children}</div></div></div>);
 }
 
 function PhotoField({ value, onChange, folder, label = "Foto", id }) {
@@ -54,8 +54,8 @@ function PhotoField({ value, onChange, folder, label = "Foto", id }) {
     <div>
       <p style={{...lbl, margin: 0, marginBottom: 5}}>{label}</p>
       {value
-        ? <div><img src={value} alt="foto" style={{ width:"100%",height:160,objectFit:"contain",background:C.bg,borderRadius:6,display:"block",border:`1px solid ${C.border}` }}/><label htmlFor={id} style={{ display:"inline-block",marginTop:6,fontSize:11,color:C.teal,cursor:uploading?"wait":"pointer",fontWeight:600 }}>{uploading?"Subiendo...":"📷 Cambiar foto"}<input id={id} type="file" accept="image/*" onChange={handleFile} style={{ display:"none" }} disabled={uploading}/></label></div>
-        : <label htmlFor={id} style={{ display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:90,borderRadius:6,background:C.bg,border:`1px dashed ${C.border}`,cursor:uploading?"wait":"pointer",color:C.textMuted,fontSize:12,fontWeight:600,gap:4 }}>{uploading?"Subiendo...":"📷 Seleccionar foto (opcional)"}<input id={id} type="file" accept="image/*" onChange={handleFile} style={{ display:"none" }} disabled={uploading}/></label>
+        ? <div><img src={value} alt="foto" style={{ width:"100%",height:160,objectFit:"contain",background:C.bg,borderRadius:radMd,display:"block",border:`1px solid ${C.border}` }}/><label htmlFor={id} style={{ display:"inline-block",marginTop:6,fontSize:11,color:C.teal,cursor:uploading?"wait":"pointer",fontWeight:600 }}>{uploading?"Subiendo...":"Cambiar foto"}<input id={id} type="file" accept="image/*" onChange={handleFile} style={{ display:"none" }} disabled={uploading}/></label></div>
+        : <label htmlFor={id} style={{ display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:90,borderRadius:radMd,background:C.bg,border:`1px dashed ${C.border}`,cursor:uploading?"wait":"pointer",color:C.textMuted,fontSize:12,fontWeight:600,gap:4 }}>{uploading?"Subiendo...":"Seleccionar foto (opcional)"}<input id={id} type="file" accept="image/*" onChange={handleFile} style={{ display:"none" }} disabled={uploading}/></label>
       }
     </div>
   );
@@ -203,7 +203,7 @@ function AddPaymentForm({contract,onSave,onCancel}){
   return(
     <Modal title={`Pago — ${contract.provider}`} onClose={onCancel}>
       <div style={{display:"flex",flexDirection:"column",gap:16}}>
-        <div style={{padding:"12px 16px",background:"#F7F9FB",borderRadius:6,border:`1px solid ${C.borderLight}`}}>
+        <div style={{padding:"12px 16px",background:"#F7F9FB",borderRadius:radMd,border:`1px solid ${C.borderLight}`}}>
           <p style={{margin:"0 0 2px",...lbl}}>Contrato</p>
           <p style={{margin:0,fontSize:13,fontWeight:700,color:C.navy}}>{contract.concept}</p>
           <p style={{margin:"4px 0 0",fontSize:12,color:C.textSecondary}}>Valor: {fmt(contract.value)} · Pagado: {fmt(contract.payments.reduce((s,p)=>s+p.amount,0))}</p>
