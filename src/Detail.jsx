@@ -5,7 +5,29 @@ import { useAuth } from "./context.js";
 function Section({title,accent,action,children,style:sx}){return(<div style={{background:C.cardBg,borderRadius:radLg,border:`1px solid ${C.border}`,overflow:"hidden",...sx}}>{title&&<div style={{padding:"13px 24px",borderBottom:`1px solid ${C.border}`,background:"#F7F9FB",display:"flex",alignItems:"center",justifyContent:"space-between"}}><div style={{display:"flex",alignItems:"center",gap:8}}>{accent&&<div style={{width:3,height:16,borderRadius:radSm,background:accent}}/>}<h3 style={{margin:0,fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.1em",color:C.textSecondary,fontFamily:font}}>{title}</h3></div>{action}</div>}{children}</div>);}
 
 function PhaseStepper({currentPhase}){
+  const{isMobile}=useAuth();
   const idx=PHASE_INDEX[currentPhase]??0;
+  if(isMobile){
+    return(
+      <div>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+          <span style={{fontSize:11,fontWeight:800,color:C.teal,textTransform:"uppercase",letterSpacing:"0.04em"}}>{currentPhase}</span>
+          <span style={{fontSize:10,color:C.textMuted,fontWeight:700,fontVariantNumeric:"tabular-nums"}}>Fase {idx+1} / {PHASES.length}</span>
+        </div>
+        <div style={{display:"flex",alignItems:"center",width:"100%"}}>
+          {PHASES.map((p,i)=>{
+            const done=i<idx,active=i===idx;
+            return(
+              <div key={p} style={{display:"flex",alignItems:"center",flex:i<PHASES.length-1?1:"none"}}>
+                <div style={{width:active?16:10,height:active?16:10,borderRadius:"50%",background:done||active?C.teal:"#E2E8F0",border:active?`2px solid ${C.teal}55`:"none",flexShrink:0}}/>
+                {i<PHASES.length-1&&<div style={{flex:1,height:2,minWidth:6,background:done?C.teal:"#E2E8F0",margin:"0 3px"}}/>}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
   return(
     <div style={{display:"flex",alignItems:"flex-start",width:"100%"}}>
       {PHASES.map((p,i)=>{
