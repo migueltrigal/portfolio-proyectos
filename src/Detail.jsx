@@ -7,29 +7,9 @@ function Section({title,accent,action,children,style:sx}){return(<div style={{ba
 function PhaseStepper({currentPhase}){
   const{isMobile}=useAuth();
   const idx=PHASE_INDEX[currentPhase]??0;
-  if(isMobile){
-    return(
-      <div>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
-          <span style={{fontSize:11,fontWeight:800,color:C.teal,textTransform:"uppercase",letterSpacing:"0.04em"}}>{currentPhase}</span>
-          <span style={{fontSize:10,color:C.textMuted,fontWeight:700,fontVariantNumeric:"tabular-nums"}}>Fase {idx+1} / {PHASES.length}</span>
-        </div>
-        <div style={{display:"flex",alignItems:"center",width:"100%"}}>
-          {PHASES.map((p,i)=>{
-            const done=i<idx,active=i===idx;
-            return(
-              <div key={p} style={{display:"flex",alignItems:"center",flex:i<PHASES.length-1?1:"none"}}>
-                <div style={{width:active?16:10,height:active?16:10,borderRadius:"50%",background:done||active?C.teal:"#E2E8F0",border:active?`2px solid ${C.teal}55`:"none",flexShrink:0}}/>
-                {i<PHASES.length-1&&<div style={{flex:1,height:2,minWidth:6,background:done?C.teal:"#E2E8F0",margin:"0 3px"}}/>}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    );
-  }
   return(
-    <div style={{display:"flex",alignItems:"flex-start",width:"100%"}}>
+    <div style={{overflowX:isMobile?"auto":"visible",WebkitOverflowScrolling:"touch",margin:isMobile?"0 -16px":0,padding:isMobile?"0 16px 4px":0}}>
+    <div style={{display:"flex",alignItems:"flex-start",width:"100%",minWidth:isMobile?560:"auto"}}>
       {PHASES.map((p,i)=>{
         const done=i<idx,active=i===idx;
         return(
@@ -46,6 +26,7 @@ function PhaseStepper({currentPhase}){
           </div>
         );
       })}
+    </div>
     </div>
   );
 }
