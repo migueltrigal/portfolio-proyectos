@@ -216,8 +216,7 @@ export default function App(){
               <img src={LOGO_SRC} alt="I+D" style={{ height:isMobile?30:40,display:"block" }} />
             </div>
             <div>
-              <p style={{ fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.12em",color:"rgba(255,255,255,0.6)",margin:"0 0 2px" }}>Innovación y Transformación Digital</p>
-              <h1 style={{ fontSize:isMobile?18:22,fontWeight:700,color:"#FFD40A",margin:0,letterSpacing:"-0.01em" }}>Portafolio de Proyectos</h1>
+              <h1 style={{ fontSize:isMobile?22:28,fontWeight:700,color:"#FFD40A",margin:0,letterSpacing:"-0.01em" }}>Portafolio de Proyectos de Innovación</h1>
             </div>
           </div>
           <div style={{ display:"flex",alignItems:"center",gap:10 }}>
