@@ -4,7 +4,7 @@ export const C = {
   bg: "#F4F6F8", cardBg: "#FFFFFF", border: "#DDE3EA", borderLight: "#EEF1F5",
   textPrimary: "#0E2841", textSecondary: "#4A5E74", textMuted: "#8899AB",
 };
-export const font = "'Aptos', 'Segoe UI', -apple-system, sans-serif";
+export const font = "'Montserrat', 'Segoe UI', -apple-system, sans-serif";
 
 export const radSm = 2;
 export const radMd = 4;
