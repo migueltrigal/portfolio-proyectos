@@ -71,8 +71,47 @@ async function apiCall(url, method = "GET", data = null) {
   try { return JSON.parse(text); } catch { return {}; }
 }
 
+/* ─── Cache SWR en localStorage ─── */
+const CACHE_KEY = "portfolio-cache-v1";
+const CACHE_VERSION = 1;
+const CACHE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
+
+export function readCachedProjects() {
+  try {
+    const raw = typeof localStorage !== "undefined" && localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || parsed.version !== CACHE_VERSION) return null;
+    if (Date.now() - parsed.timestamp > CACHE_MAX_AGE) return null;
+    return { data: parsed.data, timestamp: parsed.timestamp };
+  } catch { return null; }
+}
+
+export function writeCachedProjects(data) {
+  try {
+    if (typeof localStorage === "undefined") return;
+    localStorage.setItem(CACHE_KEY, JSON.stringify({
+      version: CACHE_VERSION,
+      timestamp: Date.now(),
+      data,
+    }));
+  } catch { /* quota, modo privado, etc. */ }
+}
+
 export async function loadAll() {
-  const raw = await apiCall(API.leer);
+  let raw;
+  // Reusar el fetch disparado desde index.html si está disponible
+  const bootPromise = typeof window !== "undefined" && window.__bootDataPromise;
+  if (bootPromise) {
+    delete window.__bootDataPromise;
+    try {
+      raw = await bootPromise;
+    } catch {
+      raw = await apiCall(API.leer);
+    }
+  } else {
+    raw = await apiCall(API.leer);
+  }
   // Transform SharePoint list items into app format
   const proyectos = (raw.proyectos || []).map(p => ({
     id: p.ID,
@@ -118,7 +157,7 @@ export async function loadAll() {
   }));
 
   // Assemble: attach avances and contracts (with payments) to each project
-  return proyectos.map(proj => ({
+  const assembled = proyectos.map(proj => ({
     ...proj,
     advances: avances
       .filter(a => a.proyectoId === proj.id)
@@ -132,6 +171,9 @@ export async function loadAll() {
           .sort((a, b) => b.date.localeCompare(a.date)),
       })),
   }));
+
+  writeCachedProjects(assembled);
+  return assembled;
 }
 
 export async function crearProyecto(data) {

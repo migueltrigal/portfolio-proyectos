@@ -8,13 +8,14 @@
     <!-- Preconnect: resuelve DNS/TLS antes de que el JS arranque -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://default510f9de096154a978ffa0354dd6cd6.c7.environment.api.powerplatform.com" crossorigin />
     <!-- font-display=swap: el texto es legible con fuente del sistema mientras carga Outfit -->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <style>
       /* ── Skeleton loader (visible hasta que React hidrata) ── */
       #root:empty {
         min-height: 100vh;
-        background: #F4F6F8;
+        background: #1F3361;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -26,8 +27,8 @@
         content: '';
         width: 44px;
         height: 44px;
-        border: 3px solid #EEF1F5;
-        border-top-color: #267B8A;
+        border: 3px solid rgba(255,255,255,0.15);
+        border-top-color: #FFD40A;
         border-radius: 50%;
         animation: sk-spin 0.8s linear infinite;
       }
@@ -35,13 +36,46 @@
         content: 'Cargando portafolio…';
         font-size: 13px;
         font-weight: 600;
-        color: #8899AB;
+        color: rgba(255,255,255,0.6);
         letter-spacing: 0.02em;
       }
       @keyframes sk-spin { to { transform: rotate(360deg); } }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
     </style>
+    <script>
+      // Boot prefetch: dispara la llamada a Power Automate y lee la cache
+      // ANTES de que el bundle JS termine de descargar/parsear.
+      (function () {
+        var API_LEER = "https://default510f9de096154a978ffa0354dd6cd6.c7.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/cb308f7c39e64f98abd933ffe0635ab8/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=PNInfVa9dTDZpAn3R1jKn4r4W24-AlZRgLzSr4sp13Y";
+        var CACHE_KEY = "portfolio-cache-v1";
+        var MAX_AGE = 7 * 24 * 60 * 60 * 1000;
+
+        try {
+          var raw = localStorage.getItem(CACHE_KEY);
+          if (raw) {
+            var parsed = JSON.parse(raw);
+            if (parsed && parsed.version === 1 && (Date.now() - parsed.timestamp) < MAX_AGE) {
+              window.__bootCache = parsed.data;
+            }
+          }
+        } catch (e) { /* ignore */ }
+
+        try {
+          window.__bootDataPromise = fetch(API_LEER, {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+          }).then(function (res) {
+            if (!res.ok) throw new Error("API error: " + res.status);
+            return res.text();
+          }).then(function (text) {
+            try { return JSON.parse(text); } catch (e) { return {}; }
+          });
+        } catch (e) { /* fallback al flujo normal */ }
+      })();
+    </script>
   </head>
-  <body style="margin:0; background:#F4F6F8;">
+  <body style="margin:0; background:#1F3361;">
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

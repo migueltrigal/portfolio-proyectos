@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect, lazy, Suspense } from "react";
-import { loadAll, crearProyecto, editarProyecto, crearAvance, crearContrato, crearPago } from "./api.js";
+import { loadAll, crearProyecto, editarProyecto, crearAvance, crearContrato, crearPago, readCachedProjects } from "./api.js";
 import { C, font, PHASES, PHASE_INDEX, STATUSES, STATUS_CONFIG, INNOVATION_TYPES, fmtD, btnP, imgUrl, formatLocations, radSm, radMd, radLg } from "./tokens.js";
 
 import { AuthCtx, EDITOR_KEY, useAuth } from "./context.js";
@@ -26,7 +26,6 @@ function Spinner({ text = "Cargando..." }) {
     <div style={{ display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:60 }}>
       <div style={{ width:32,height:32,border:`3px solid ${C.borderLight}`,borderTop:`3px solid ${C.teal}`,borderRadius:"50%",animation:"spin 0.8s linear infinite" }}/>
       <p style={{ marginTop:12,fontSize:13,color:C.textMuted,fontWeight:600 }}>{text}</p>
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }
@@ -131,10 +130,31 @@ function ProjectCard({project:p,onClick}){
   );
 }
 
+/* ─── Skeleton card placeholder ─── */
+function SkeletonCard(){
+  return (
+    <div style={{background:C.white,borderRadius:radMd,border:"1px solid #e2e8f0",overflow:"hidden",display:"flex",height:128}}>
+      <div style={{width:110,flexShrink:0,background:"linear-gradient(135deg,#eef2f7,#dfe6ee)",animation:"pulse 1.4s ease-in-out infinite"}}/>
+      <div style={{flex:1,padding:"12px 14px",display:"flex",flexDirection:"column",justifyContent:"space-between"}}>
+        <div style={{height:10,width:"40%",background:"#eef2f7",borderRadius:4,animation:"pulse 1.4s ease-in-out infinite"}}/>
+        <div>
+          <div style={{height:14,width:"75%",background:"#eef2f7",borderRadius:4,marginBottom:6,animation:"pulse 1.4s ease-in-out infinite"}}/>
+          <div style={{height:10,width:"50%",background:"#eef2f7",borderRadius:4,animation:"pulse 1.4s ease-in-out infinite"}}/>
+        </div>
+        <div style={{height:6,background:"#eef2f7",borderRadius:4,animation:"pulse 1.4s ease-in-out infinite"}}/>
+      </div>
+    </div>
+  );
+}
+
 /* ─── App ─── */
 export default function App(){
-  const[projects,setProjects]=useState([]);
-  const[loading,setLoading]=useState(true);
+  const[projects,setProjects]=useState(()=>{
+    const cached = readCachedProjects();
+    return cached?.data || [];
+  });
+  const[loading,setLoading]=useState(()=>!readCachedProjects());
+  const[revalidating,setRevalidating]=useState(true);
   const[error,setError]=useState(null);
   const[selId,setSelId]=useState(null);
   const[filter,setFilter]=useState("Todos");
@@ -144,6 +164,7 @@ export default function App(){
   const isMobile=useMediaQuery("(max-width: 640px)");
 
   const reload = useCallback(async () => {
+    setRevalidating(true);
     try {
       const data = await loadAll();
       setProjects(data);
@@ -152,6 +173,7 @@ export default function App(){
       setError(e.message);
     } finally {
       setLoading(false);
+      setRevalidating(false);
     }
   }, []);
 
@@ -178,9 +200,31 @@ export default function App(){
   const handleAddContract   = useCallback(async (data) => { await crearContrato(selId, data);    setModal(null); await reload(); }, [selId, reload]);
   const handleAddPayment    = useCallback(async (data) => { await crearPago(payContract.id, data); setModal(null); setPayContract(null); await reload(); }, [payContract, reload]);
 
-  if (loading) return (
-    <div style={{ minHeight:"100vh",background:C.bg,fontFamily:font,display:"flex",alignItems:"center",justifyContent:"center" }}>
-      <Spinner text="Cargando portafolio..." />
+  if (loading && projects.length === 0) return (
+    <div style={{ minHeight:"100vh",background:C.dark,fontFamily:font,padding:isMobile?"12px 10px":"22px 16px" }}>
+      <div style={{ maxWidth:1100,margin:"0 auto" }}>
+        <div style={{ display:"flex",flexDirection:isMobile?"column":"row",justifyContent:"space-between",alignItems:"flex-start",gap:12,marginBottom:20 }}>
+          <div style={{ display:"flex",alignItems:"center",gap:12 }}>
+            <div style={{ background:C.white,borderRadius:radMd,padding:"4px 6px",flexShrink:0,display:"flex",alignItems:"center" }}>
+              <img src={LOGO_SRC} alt="I+D" style={{ height:isMobile?30:40,display:"block" }} />
+            </div>
+            <h1 style={{ fontSize:isMobile?22:28,fontWeight:700,color:"#FFD40A",margin:0,letterSpacing:"-0.01em" }}>Portafolio de Proyectos de Innovación</h1>
+          </div>
+        </div>
+        <div style={{ background:C.white,borderRadius:radLg,overflow:"hidden",marginBottom:16 }}>
+          <div style={{ display:"grid",gridTemplateColumns:isMobile?"1fr 1fr":"repeat(4,1fr)" }}>
+            {["Activos","En prototipado","En piloto","En implementación"].map((label,i)=>(
+              <div key={i} style={{ padding:isMobile?"12px 14px":"16px 24px",borderRight:(!isMobile&&i<3)||(isMobile&&i%2===0)?`1px solid ${C.borderLight}`:"none",borderBottom:isMobile&&i<2?`1px solid ${C.borderLight}`:"none" }}>
+                <p style={{ fontSize:9,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",color:C.textMuted,margin:"0 0 4px" }}>{label}</p>
+                <p style={{ fontSize:isMobile?26:30,fontWeight:500,color:C.textMuted,margin:0,lineHeight:1,animation:"pulse 1.4s ease-in-out infinite" }}>—</p>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div style={{ display:"grid",gridTemplateColumns:isMobile?"1fr":"repeat(auto-fill, minmax(300px, 1fr))",gap:14 }}>
+          {Array.from({length:6}).map((_,i)=><SkeletonCard key={i}/>)}
+        </div>
+      </div>
     </div>
   );
 
@@ -220,6 +264,12 @@ export default function App(){
             </div>
           </div>
           <div style={{ display:"flex",alignItems:"center",gap:10 }}>
+            {revalidating && projects.length>0 && (
+              <span style={{ display:"inline-flex",alignItems:"center",gap:6,fontSize:10,fontWeight:600,color:"rgba(255,255,255,0.6)",letterSpacing:"0.04em",textTransform:"uppercase" }}>
+                <span style={{ width:10,height:10,border:"1.5px solid rgba(255,255,255,0.25)",borderTopColor:"rgba(255,255,255,0.85)",borderRadius:"50%",display:"inline-block",animation:"spin 0.8s linear infinite" }}/>
+                Actualizando…
+              </span>
+            )}
             <AuthBar isEditor={isEditor} onLogin={()=>setIsEditor(true)} onLogout={()=>setIsEditor(false)} dark />
             {isEditor&&<button onClick={()=>setModal("create")} style={{...btnP,fontSize:12,padding:isMobile?"8px 14px":"10px 24px"}}>+ Nuevo proyecto</button>}
           </div>
