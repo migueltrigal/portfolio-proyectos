@@ -147,6 +147,10 @@ function SkeletonCard(){
   );
 }
 
+const STALE_DAYS = 60;
+const daysAgo = (str) =>
+  Math.floor((Date.now() - new Date(str + "T12:00:00")) / 86400000);
+
 /* ─── App ─── */
 export default function App(){
   const[projects,setProjects]=useState(()=>{
@@ -167,7 +171,20 @@ export default function App(){
     setRevalidating(true);
     try {
       const data = await loadAll();
-      setProjects(data);
+      const stale = data.filter(p => {
+        if (p.status !== "En curso") return false;
+        const ref = p.advances[0]?.date ?? p.startDate;
+        return ref && daysAgo(ref) > STALE_DAYS;
+      });
+      if (stale.length) {
+        for (const p of stale) {
+          await editarProyecto({ ...p, status: "Pausado" });
+        }
+        const updated = await loadAll();
+        setProjects(updated);
+      } else {
+        setProjects(data);
+      }
       setError(null);
     } catch (e) {
       setError(e.message);
