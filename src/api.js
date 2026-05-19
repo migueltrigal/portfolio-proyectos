@@ -14,10 +14,12 @@ export const API = {
 
 // Borra el cache del Worker tras cada escritura para que el siguiente reload
 // reciba datos frescos en vez de datos cacheados (stale).
-function invalidarCacheWorker() {
+async function invalidarCacheWorker() {
   const secret = import.meta.env.VITE_WORKER_SECRET;
   if (!import.meta.env.VITE_WORKER_URL || !secret) return;
-  fetch(WORKER_URL, { headers: { "X-Invalidate": secret } }).catch(() => {});
+  try {
+    await fetch(WORKER_URL, { headers: { "X-Invalidate": secret } });
+  } catch { /* si falla, el siguiente reload todavía puede traer datos frescos */ }
 }
 
 /* ─── GitHub CDN ─── */
@@ -204,7 +206,7 @@ export async function crearProyecto(data) {
     fotoPrincipal: data.fotoPrincipal,
     tipoInnovacion: data.innovationType,
   }));
-  invalidarCacheWorker();
+  await invalidarCacheWorker();
   return result;
 }
 
@@ -223,7 +225,7 @@ export async function editarProyecto(data) {
     fotoPrincipal: data.fotoPrincipal,
     tipoInnovacion: data.innovationType,
   }));
-  invalidarCacheWorker();
+  await invalidarCacheWorker();
   return result;
 }
 
@@ -237,7 +239,7 @@ export async function crearAvance(proyectoId, data) {
     registradoPor: data.registeredBy,
     fotoEvidencia: data.fotoEvidencia,
   }));
-  invalidarCacheWorker();
+  await invalidarCacheWorker();
   return result;
 }
 
@@ -249,7 +251,7 @@ export async function crearContrato(proyectoId, data) {
     concepto: data.concept,
     valor: data.value,
   });
-  invalidarCacheWorker();
+  await invalidarCacheWorker();
   return result;
 }
 
@@ -260,6 +262,6 @@ export async function crearPago(contratoId, data) {
     monto: data.amount,
     nota: data.note,
   });
-  invalidarCacheWorker();
+  await invalidarCacheWorker();
   return result;
 }
